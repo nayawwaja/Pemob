@@ -1,7 +1,5 @@
-// lib/screens/main_dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// Import screen spesifik
 import 'kitchen_screen.dart';
 import 'waiter_screen.dart';
 import 'admin/admin_dashboard.dart';
