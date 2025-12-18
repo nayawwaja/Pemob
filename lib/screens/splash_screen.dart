@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth/login_screen.dart';
-
-// --- IMPORT SEMUA DASHBOARD ---
-import 'admin/admin_dashboard.dart';   // Untuk Admin
-import 'staff/staff_dashboard.dart';   // Untuk CS / Manager
-import 'kitchen_screen.dart';          // Untuk Chef
-import 'waiter_screen.dart';           // Untuk Waiter
+import 'admin/admin_dashboard.dart';   
+import 'staff/staff_dashboard.dart';  
+import 'kitchen_screen.dart';          
+import 'waiter_screen.dart';           
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
