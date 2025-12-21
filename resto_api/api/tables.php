@@ -1,5 +1,6 @@
 <?php
 // api/tables.php - SMART STATUS UPDATE & RESERVATION SYNC
+require_once '../utils/helpers.php';
 require_once '../config/database.php';
 $database = new Database();
 $db = $database->getConnection();
@@ -37,12 +38,35 @@ function getTables($db) {
         foreach ($tables as &$t) {
             $t['id'] = (int)$t['id'];
             $t['capacity'] = (int)$t['capacity'];
-            
-            // Pastikan min_dp ada & kirim sebagai double
             $t['min_dp'] = isset($t['min_dp']) ? (double)$t['min_dp'] : 0.0;
-            
-            // Normalisasi status
             $t['status'] = strtolower($t['status']); 
+
+            // LOGIKA BARU: Cek reservasi dalam 1 jam ke depan
+            // Jika meja kosong, cek apakah ada reservasi yang akan mulai.
+            // Ini membuat status 'reserved' dinamis tanpa cron job.
+            if ($t['status'] == 'available') {
+                $now = new DateTime();
+                $oneHourLater = (new DateTime())->add(new DateInterval('PT1H'));
+
+                $bookingSql = "SELECT id FROM bookings 
+                               WHERE table_id = ? 
+                               AND status = 'confirmed' 
+                               AND booking_date = CURDATE() 
+                               AND booking_time BETWEEN ? AND ? 
+                               LIMIT 1";
+                               
+                $bookingStmt = $db->prepare($bookingSql);
+                $bookingStmt->execute([
+                    $t['id'], 
+                    $now->format('H:i:s'), 
+                    $oneHourLater->format('H:i:s')
+                ]);
+
+                // Jika ditemukan booking dalam 1 jam, ubah statusnya di response jadi 'reserved'
+                if ($bookingStmt->rowCount() > 0) {
+                    $t['status'] = 'reserved';
+                }
+            }
         }
         
         sendResponse(true, "Success", $tables);

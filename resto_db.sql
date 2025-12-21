@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 19, 2025 at 03:31 AM
+-- Generation Time: Dec 21, 2025 at 09:49 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,8 +20,64 @@ SET time_zone = "+00:00";
 --
 -- Database: `resto_db`
 --
-CREATE DATABASE IF NOT EXISTS `resto_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `resto_db`;
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_recalculate_order` (IN `p_order_id` INT)   BEGIN
+    DECLARE v_subtotal DECIMAL(12,2);
+    DECLARE v_tax_rate DECIMAL(5,2);
+    DECLARE v_service_rate DECIMAL(5,2);
+    DECLARE v_tax DECIMAL(12,2);
+    DECLARE v_service DECIMAL(12,2);
+    DECLARE v_total DECIMAL(12,2);
+    
+    -- Get rates from settings
+    SELECT COALESCE(CAST(value AS DECIMAL(5,2)), 10) / 100 INTO v_tax_rate 
+    FROM settings WHERE key_name = 'tax_percentage';
+    
+    SELECT COALESCE(CAST(value AS DECIMAL(5,2)), 5) / 100 INTO v_service_rate 
+    FROM settings WHERE key_name = 'service_charge_percentage';
+    
+    -- Calculate subtotal
+    SELECT COALESCE(SUM(quantity * price), 0) INTO v_subtotal
+    FROM order_items WHERE order_id = p_order_id;
+    
+    -- Calculate tax and service
+    SET v_tax = v_subtotal * v_tax_rate;
+    SET v_service = v_subtotal * v_service_rate;
+    SET v_total = v_subtotal + v_tax + v_service;
+    
+    -- Update order
+    UPDATE orders 
+    SET subtotal = v_subtotal, 
+        tax = v_tax, 
+        service_charge = v_service, 
+        total_amount = v_total,
+        updated_at = NOW()
+    WHERE id = p_order_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_sales_report` (IN `p_start_date` DATE, IN `p_end_date` DATE)   BEGIN
+    SELECT 
+        DATE(o.created_at) as sale_date,
+        COUNT(DISTINCT o.id) as total_orders,
+        SUM(o.total_amount) as gross_sales,
+        SUM(o.discount) as total_discounts,
+        SUM(o.total_amount - o.discount) as net_sales,
+        SUM(o.tax) as total_tax,
+        SUM(o.service_charge) as total_service,
+        o.payment_method,
+        COUNT(DISTINCT o.customer_id) as unique_customers
+    FROM orders o
+    WHERE o.status = 'completed'
+      AND DATE(o.created_at) BETWEEN p_start_date AND p_end_date
+    GROUP BY DATE(o.created_at), o.payment_method
+    ORDER BY sale_date DESC;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -29,67 +85,17 @@ USE `resto_db`;
 -- Table structure for table `activity_logs`
 --
 
-CREATE TABLE IF NOT EXISTS `activity_logs` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID log',
-  `user_id` int(11) NOT NULL COMMENT 'FK ke users',
-  `action_type` varchar(50) NOT NULL COMMENT 'Jenis aksi',
-  `description` text NOT NULL COMMENT 'Deskripsi aktivitas',
-  `ip_address` varchar(45) DEFAULT NULL COMMENT 'IP address',
-  `user_agent` text DEFAULT NULL COMMENT 'Browser/device info',
-  `old_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Data sebelum perubahan' CHECK (json_valid(`old_data`)),
-  `new_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Data setelah perubahan' CHECK (json_valid(`new_data`)),
+CREATE TABLE `activity_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `action` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `fk_log_user` (`user_id`),
-  KEY `idx_action` (`action_type`),
-  KEY `idx_created` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Log aktivitas sistem';
-
---
--- Dumping data for table `activity_logs`
---
-
-INSERT INTO `activity_logs` (`id`, `user_id`, `action_type`, `description`, `ip_address`, `user_agent`, `old_data`, `new_data`, `created_at`) VALUES
-(1, 1, 'UPDATE_TABLE', 'Ubah status meja ID 10 jadi occupied', NULL, NULL, NULL, NULL, '2025-12-19 01:09:28'),
-(2, 1, 'UPDATE_TABLE', 'Ubah status meja ID 10 jadi available', NULL, NULL, NULL, NULL, '2025-12-19 01:09:31'),
-(3, 1, 'CREATE_ORDER', 'Order baru ORD-190210-4 (Meja 4)', NULL, NULL, NULL, NULL, '2025-12-19 01:10:41'),
-(4, 1, 'UPDATE_STATUS', 'Order #1 -> cooking', NULL, NULL, NULL, NULL, '2025-12-19 01:10:45'),
-(5, 1, 'UPDATE_STATUS', 'Order #1 -> ready', NULL, NULL, NULL, NULL, '2025-12-19 01:10:46'),
-(6, 4, 'LOGIN', 'User logged in', NULL, NULL, NULL, NULL, '2025-12-19 01:11:14'),
-(7, 4, 'UPDATE_STATUS', 'Order #1 -> served', NULL, NULL, NULL, NULL, '2025-12-19 01:11:17'),
-(8, 2, 'LOGIN', 'User logged in', NULL, NULL, NULL, NULL, '2025-12-19 01:11:33'),
-(9, 2, 'CLOCK_IN', 'Staff memulai shift kerja', NULL, NULL, NULL, NULL, '2025-12-19 01:11:38'),
-(10, 2, 'CREATE_BOOKING', 'Booking RES-5876 dibuat. DP: Rp 75,000', NULL, NULL, NULL, NULL, '2025-12-19 01:12:08'),
-(11, 2, 'CHECK_IN', 'Tamu Check-in Kode: RES-5876', NULL, NULL, NULL, NULL, '2025-12-19 01:12:11'),
-(12, 2, 'PAYMENT', 'Terima Pembayaran ORD-190210-4 via QRIS (Rp 40,250)', NULL, NULL, NULL, NULL, '2025-12-19 01:12:35'),
-(13, 2, 'CLOCK_OUT', 'Staff mengakhiri shift kerja', NULL, NULL, NULL, NULL, '2025-12-19 01:12:55');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `attendance`
---
-
-CREATE TABLE IF NOT EXISTS `attendance` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID absensi',
-  `user_id` int(11) NOT NULL COMMENT 'FK ke users',
-  `clock_in` datetime NOT NULL COMMENT 'Waktu masuk',
-  `clock_out` datetime DEFAULT NULL COMMENT 'Waktu keluar',
-  `duration_minutes` int(11) DEFAULT 0 COMMENT 'Durasi kerja (menit)',
-  `status` enum('present','late','absent','leave') DEFAULT 'present' COMMENT 'Status kehadiran',
-  `notes` text DEFAULT NULL COMMENT 'Catatan',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `fk_attendance_user` (`user_id`),
-  KEY `idx_date` (`clock_in`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data absensi staff';
-
---
--- Dumping data for table `attendance`
---
-
-INSERT INTO `attendance` (`id`, `user_id`, `clock_in`, `clock_out`, `duration_minutes`, `status`, `notes`, `created_at`) VALUES
-(1, 2, '2025-12-19 08:11:38', '2025-12-19 08:12:55', 0, 'present', NULL, '2025-12-19 01:11:38');
+  `action_type` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -97,42 +103,46 @@ INSERT INTO `attendance` (`id`, `user_id`, `clock_in`, `clock_out`, `duration_mi
 -- Table structure for table `bookings`
 --
 
-CREATE TABLE IF NOT EXISTS `bookings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID booking',
-  `booking_code` varchar(20) NOT NULL COMMENT 'Kode booking unik',
-  `customer_id` int(11) DEFAULT NULL COMMENT 'FK ke customers',
-  `customer_name` varchar(100) NOT NULL COMMENT 'Nama pemesan',
-  `customer_phone` varchar(20) NOT NULL COMMENT 'No HP pemesan',
-  `customer_email` varchar(100) DEFAULT NULL COMMENT 'Email pemesan',
-  `table_id` int(11) NOT NULL COMMENT 'FK ke tables',
-  `booking_date` date NOT NULL COMMENT 'Tanggal reservasi',
-  `booking_time` time NOT NULL COMMENT 'Jam reservasi',
-  `duration_hours` int(11) DEFAULT 2 COMMENT 'Estimasi durasi (jam)',
-  `check_in_time` datetime DEFAULT NULL COMMENT 'Waktu check-in aktual',
-  `check_out_time` datetime DEFAULT NULL COMMENT 'Waktu check-out',
-  `guest_count` int(11) NOT NULL COMMENT 'Jumlah tamu',
-  `down_payment` decimal(12,2) DEFAULT 0.00 COMMENT 'Uang muka/DP',
-  `dp_payment_method` varchar(20) DEFAULT NULL COMMENT 'Metode bayar DP',
-  `status` enum('pending','confirmed','checked_in','completed','cancelled','no_show') DEFAULT 'pending' COMMENT 'Status booking',
-  `notes` text DEFAULT NULL COMMENT 'Catatan khusus',
-  `special_request` text DEFAULT NULL COMMENT 'Permintaan khusus',
-  `created_by` int(11) DEFAULT NULL COMMENT 'FK ke users (pembuat)',
+CREATE TABLE `bookings` (
+  `id` int(11) NOT NULL,
+  `table_id` int(11) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `customer_name` varchar(100) NOT NULL,
+  `customer_phone` varchar(20) NOT NULL,
+  `customer_email` varchar(100) DEFAULT NULL,
+  `booking_code` varchar(20) DEFAULT NULL,
+  `booking_date` date NOT NULL,
+  `booking_time` time NOT NULL,
+  `duration` int(11) DEFAULT 120 COMMENT 'Durasi dalam menit',
+  `guest_count` int(11) DEFAULT 2,
+  `status` enum('pending','confirmed','checked_in','completed','cancelled','no_show') DEFAULT 'pending',
+  `special_request` text DEFAULT NULL,
+  `confirmed_by` int(11) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_booking_code` (`booking_code`),
-  KEY `fk_booking_table` (`table_id`),
-  KEY `fk_booking_creator` (`created_by`),
-  KEY `idx_date` (`booking_date`),
-  KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data reservasi';
+  `dp_paid` tinyint(1) DEFAULT 0,
+  `check_in_time` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `bookings`
+-- Table structure for table `booking_payments`
 --
 
-INSERT INTO `bookings` (`id`, `booking_code`, `customer_id`, `customer_name`, `customer_phone`, `customer_email`, `table_id`, `booking_date`, `booking_time`, `duration_hours`, `check_in_time`, `check_out_time`, `guest_count`, `down_payment`, `dp_payment_method`, `status`, `notes`, `special_request`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 'RES-5876', NULL, 'ayam', '1234', NULL, 4, '2025-12-19', '08:12:00', 2, '2025-12-19 08:12:11', NULL, 2, 75000.00, NULL, 'checked_in', '', NULL, NULL, '2025-12-19 01:12:08', '2025-12-19 01:12:11');
+CREATE TABLE `booking_payments` (
+  `id` int(11) NOT NULL,
+  `booking_id` int(11) NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
+  `payment_method` varchar(50) NOT NULL,
+  `status` enum('pending','paid','refunded') DEFAULT 'pending',
+  `reference_number` varchar(100) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `cashier_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -140,30 +150,28 @@ INSERT INTO `bookings` (`id`, `booking_code`, `customer_id`, `customer_name`, `c
 -- Table structure for table `categories`
 --
 
-CREATE TABLE IF NOT EXISTS `categories` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID kategori',
-  `name` varchar(100) NOT NULL COMMENT 'Nama kategori',
-  `icon` varchar(50) DEFAULT '?️' COMMENT 'Emoji atau icon',
-  `type` enum('food','drink','other') DEFAULT 'food' COMMENT 'Jenis kategori',
-  `sort_order` int(11) DEFAULT 0 COMMENT 'Urutan tampilan',
-  `is_active` tinyint(1) DEFAULT 1 COMMENT 'Status aktif',
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `icon` varchar(50) DEFAULT NULL,
+  `sort_order` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_type` (`type`),
-  KEY `idx_active_order` (`is_active`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Kategori menu';
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `icon`, `type`, `sort_order`, `is_active`, `created_at`) VALUES
-(1, 'Makanan Berat', '🍛', 'food', 1, 1, '2025-12-19 00:27:16'),
-(2, 'Makanan Ringan', '🍟', 'food', 2, 1, '2025-12-19 00:27:16'),
-(3, 'Minuman Dingin', '🥤', 'drink', 3, 1, '2025-12-19 00:27:16'),
-(4, 'Minuman Panas', '☕', 'drink', 4, 1, '2025-12-19 00:27:16'),
-(5, 'Dessert', '🍰', 'other', 5, 1, '2025-12-19 00:27:16'),
-(6, 'Paket Hemat', '📦', 'other', 6, 1, '2025-12-19 00:27:16');
+INSERT INTO `categories` (`id`, `name`, `description`, `icon`, `sort_order`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Makanan Utama', 'Hidangan utama nasi, mie, dan lauk', 'restaurant', 1, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 'Appetizer', 'Hidangan pembuka', 'tapas', 2, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 'Minuman', 'Berbagai minuman segar', 'local_cafe', 3, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 'Dessert', 'Hidangan penutup manis', 'cake', 4, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 'Snack', 'Makanan ringan dan gorengan', 'fastfood', 5, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 'Paket Hemat', 'Paket combo hemat', 'savings', 6, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
 
 -- --------------------------------------------------------
 
@@ -171,23 +179,57 @@ INSERT INTO `categories` (`id`, `name`, `icon`, `type`, `sort_order`, `is_active
 -- Table structure for table `customers`
 --
 
-CREATE TABLE IF NOT EXISTS `customers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID pelanggan',
-  `name` varchar(100) NOT NULL COMMENT 'Nama lengkap',
-  `phone` varchar(20) DEFAULT NULL COMMENT 'No HP',
-  `email` varchar(100) DEFAULT NULL COMMENT 'Email',
-  `birth_date` date DEFAULT NULL COMMENT 'Tanggal lahir',
-  `loyalty_points` int(11) DEFAULT 0 COMMENT 'Poin loyalti',
-  `total_spent` decimal(15,2) DEFAULT 0.00 COMMENT 'Total belanja',
-  `visit_count` int(11) DEFAULT 0 COMMENT 'Jumlah kunjungan',
-  `membership_tier` enum('bronze','silver','gold','platinum') DEFAULT 'bronze' COMMENT 'Tingkat member',
-  `notes` text DEFAULT NULL COMMENT 'Catatan',
+CREATE TABLE `customers` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
+  `loyalty_points` int(11) DEFAULT 0,
+  `total_spent` decimal(15,2) DEFAULT 0.00,
+  `visit_count` int(11) DEFAULT 0,
+  `membership_tier` enum('bronze','silver','gold','platinum') DEFAULT 'bronze',
+  `notes` text DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_phone` (`phone`),
-  KEY `idx_tier` (`membership_tier`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data pelanggan';
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `customers`
+--
+
+INSERT INTO `customers` (`id`, `name`, `phone`, `email`, `address`, `birth_date`, `loyalty_points`, `total_spent`, `visit_count`, `membership_tier`, `notes`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Budi Santoso', '081111111111', 'budi@email.com', NULL, NULL, 150, 1500000.00, 12, 'silver', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 'Siti Rahayu', '081222222222', 'siti@email.com', NULL, NULL, 320, 3200000.00, 25, 'gold', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 'Ahmad Wijaya', '081333333333', 'ahmad@email.com', NULL, NULL, 50, 500000.00, 5, 'bronze', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 'Dewi Lestari', '081444444444', 'dewi@email.com', NULL, NULL, 580, 5800000.00, 45, 'platinum', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 'Rudi Hermawan', '081555555555', 'rudi@email.com', NULL, NULL, 200, 2000000.00, 18, 'silver', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 'Maya Sari', '081666666666', 'maya@email.com', NULL, NULL, 80, 800000.00, 8, 'bronze', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(7, 'Eko Prasetyo', '081777777777', 'eko@email.com', NULL, NULL, 420, 4200000.00, 35, 'gold', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(8, 'Linda Kusuma', '081888888888', 'linda@email.com', NULL, NULL, 100, 1000000.00, 10, 'bronze', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(9, 'Hendra Gunawan', '081999999999', 'hendra@email.com', NULL, NULL, 250, 2500000.00, 20, 'gold', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(10, 'Rina Wati', '081000000000', 'rina@email.com', NULL, NULL, 30, 300000.00, 3, 'bronze', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `inventory_logs`
+--
+
+CREATE TABLE `inventory_logs` (
+  `id` int(11) NOT NULL,
+  `menu_item_id` int(11) NOT NULL,
+  `quantity_change` int(11) NOT NULL COMMENT 'Positif = masuk, Negatif = keluar',
+  `quantity_before` int(11) NOT NULL,
+  `quantity_after` int(11) NOT NULL,
+  `reason` varchar(100) NOT NULL COMMENT 'order, restock, adjustment, waste',
+  `reference_id` int(11) DEFAULT NULL COMMENT 'ID order atau adjustment',
+  `user_id` int(11) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -195,46 +237,83 @@ CREATE TABLE IF NOT EXISTS `customers` (
 -- Table structure for table `menu_items`
 --
 
-CREATE TABLE IF NOT EXISTS `menu_items` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID menu',
-  `category_id` int(11) NOT NULL COMMENT 'FK ke categories',
-  `name` varchar(150) NOT NULL COMMENT 'Nama menu',
-  `description` text DEFAULT NULL COMMENT 'Deskripsi menu',
-  `price` decimal(12,2) NOT NULL COMMENT 'Harga normal',
-  `discount_price` decimal(12,2) DEFAULT NULL COMMENT 'Harga diskon (opsional)',
-  `image_url` text DEFAULT NULL COMMENT 'URL gambar menu',
-  `stock` int(11) DEFAULT 0 COMMENT 'Jumlah stok tersedia',
-  `min_stock_alert` int(11) DEFAULT 5 COMMENT 'Batas peringatan stok menipis',
-  `ingredients` text DEFAULT NULL COMMENT 'Daftar bahan (untuk info alergi)',
-  `allergens` text DEFAULT NULL COMMENT 'Informasi alergen',
-  `preparation_time` int(11) DEFAULT 15 COMMENT 'Estimasi waktu masak (menit)',
-  `is_available` tinyint(1) DEFAULT 1 COMMENT '1=Tersedia, 0=Habis',
-  `is_active` tinyint(1) DEFAULT 1 COMMENT '1=Aktif, 0=Dihapus',
-  `is_featured` tinyint(1) DEFAULT 0 COMMENT '1=Menu unggulan',
+CREATE TABLE `menu_items` (
+  `id` int(11) NOT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `name` varchar(150) NOT NULL,
+  `description` text DEFAULT NULL,
+  `price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `discount_price` decimal(12,2) DEFAULT NULL,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `image_url` varchar(255) DEFAULT NULL,
+  `is_available` tinyint(1) DEFAULT 1,
+  `is_featured` tinyint(1) DEFAULT 0,
+  `preparation_time` int(11) DEFAULT NULL COMMENT 'Waktu persiapan dalam menit',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `fk_menu_category` (`category_id`),
-  KEY `idx_available` (`is_available`,`is_active`),
-  KEY `idx_stock` (`stock`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daftar menu restoran';
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `menu_items`
 --
 
-INSERT INTO `menu_items` (`id`, `category_id`, `name`, `description`, `price`, `discount_price`, `image_url`, `stock`, `min_stock_alert`, `ingredients`, `allergens`, `preparation_time`, `is_available`, `is_active`, `is_featured`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran segar', 25000.00, NULL, NULL, 100, 5, NULL, NULL, 10, 1, 1, 1, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(2, 1, 'Ayam Bakar Madu', 'Ayam kampung bakar dengan saus madu spesial', 35000.00, 20000.00, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBVzIecyW45jTME4Z6faiZ_B62Qjk5AYFO-g&s', 49, 5, NULL, NULL, 20, 1, 1, 1, '2025-12-19 00:27:16', '2025-12-19 01:10:41'),
-(3, 1, 'Mie Goreng Seafood', 'Mie goreng dengan udang, cumi, dan kerang', 30000.00, NULL, NULL, 80, 5, NULL, NULL, 15, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(4, 2, 'Kentang Goreng', 'Kentang goreng crispy dengan saus sambal', 15000.00, NULL, NULL, 100, 5, NULL, NULL, 8, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(5, 2, 'Pisang Goreng Keju', 'Pisang goreng dengan taburan keju dan coklat', 12000.00, NULL, NULL, 60, 5, NULL, NULL, 10, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(6, 3, 'Es Teh Manis', 'Teh manis dingin segar', 5000.00, NULL, NULL, 200, 5, NULL, NULL, 2, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(7, 3, 'Es Jeruk', 'Jeruk peras segar dengan es', 8000.00, NULL, NULL, 150, 5, NULL, NULL, 3, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(8, 4, 'Kopi Hitam', 'Kopi hitam tubruk premium', 8000.00, NULL, NULL, 100, 5, NULL, NULL, 5, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(9, 4, 'Teh Tarik', 'Teh tarik khas Malaysia', 12000.00, NULL, NULL, 80, 5, NULL, NULL, 5, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(10, 5, 'Es Krim Coklat', 'Es krim coklat premium 2 scoop', 15000.00, NULL, NULL, 50, 5, NULL, NULL, 3, 1, 1, 0, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(11, 6, 'Paket Hemat 1', 'Nasi + Ayam Goreng + Es Teh', 35000.00, NULL, NULL, 30, 5, NULL, NULL, 15, 1, 1, 1, '2025-12-19 00:27:16', '2025-12-19 00:27:16');
+INSERT INTO `menu_items` (`id`, `category_id`, `name`, `description`, `price`, `stock`, `image_url`, `is_available`, `is_featured`, `preparation_time`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran', 35000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 1, 'Nasi Goreng Seafood', 'Nasi goreng dengan udang, cumi, dan kerang', 45000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 1, 'Mie Goreng Jawa', 'Mie goreng dengan bumbu khas Jawa', 32000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 1, 'Mie Ayam Bakso', 'Mie ayam dengan bakso sapi', 30000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 1, 'Nasi Campur Bali', 'Nasi dengan lauk khas Bali lengkap', 55000.00, 50, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 1, 'Ayam Bakar Madu', 'Ayam bakar dengan saus madu spesial', 48000.00, 60, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(7, 1, 'Ayam Geprek Sambal Matah', 'Ayam geprek dengan sambal matah Bali', 35000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(8, 1, 'Ikan Bakar Rica-Rica', 'Ikan bakar dengan bumbu rica-rica pedas', 52000.00, 40, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(9, 1, 'Sate Ayam (10 tusuk)', 'Sate ayam dengan bumbu kacang', 38000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(10, 1, 'Sate Kambing (10 tusuk)', 'Sate kambing muda empuk', 55000.00, 50, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(11, 1, 'Rendang Sapi', 'Rendang sapi Padang asli', 58000.00, 40, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(12, 1, 'Gulai Kambing', 'Gulai kambing dengan kuah kental', 52000.00, 35, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(13, 2, 'Lumpia Goreng (5 pcs)', 'Lumpia isi sayuran dan ayam', 25000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(14, 2, 'Tahu Crispy', 'Tahu goreng crispy dengan saus', 18000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(15, 2, 'Tempe Mendoan (5 pcs)', 'Tempe tipis goreng tepung', 15000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(16, 2, 'Sop Buntut', 'Sop buntut sapi dengan kuah bening', 65000.00, 30, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(17, 2, 'Soto Ayam', 'Soto ayam dengan nasi dan pelengkap', 32000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(18, 2, 'Gado-Gado', 'Sayuran dengan bumbu kacang', 28000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(19, 3, 'Es Teh Manis', 'Teh manis dingin segar', 8000.00, 200, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(20, 3, 'Es Jeruk', 'Jeruk peras segar dengan es', 12000.00, 200, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(21, 3, 'Jus Alpukat', 'Jus alpukat dengan susu coklat', 18000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(22, 3, 'Jus Mangga', 'Jus mangga segar', 15000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(23, 3, 'Es Kelapa Muda', 'Kelapa muda dengan es', 15000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(24, 3, 'Kopi Hitam', 'Kopi tubruk tradisional', 10000.00, 200, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(25, 3, 'Cappuccino', 'Cappuccino dengan foam susu', 22000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(26, 3, 'Latte', 'Kopi latte creamy', 25000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(27, 3, 'Matcha Latte', 'Green tea latte', 28000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(28, 3, 'Air Mineral', 'Air mineral botol', 6000.00, 300, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(29, 4, 'Es Cendol', 'Cendol dengan santan dan gula merah', 15000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(30, 4, 'Es Campur', 'Es campur dengan aneka topping', 18000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(31, 4, 'Pisang Goreng Keju', 'Pisang goreng dengan keju dan coklat', 20000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(32, 4, 'Kolak Pisang', 'Kolak pisang dengan santan', 15000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(33, 4, 'Puding Coklat', 'Puding coklat dengan vla', 18000.00, 60, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(34, 4, 'Es Krim Vanilla', 'Es krim vanilla 2 scoop', 20000.00, 50, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(35, 5, 'Kentang Goreng', 'French fries crispy', 22000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(36, 5, 'Onion Ring', 'Onion ring crispy', 20000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(37, 5, 'Chicken Wings (6 pcs)', 'Sayap ayam goreng crispy', 35000.00, 60, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(38, 5, 'Cireng (5 pcs)', 'Aci goreng dengan bumbu rujak', 12000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(39, 5, 'Pisang Keju', 'Pisang bakar dengan keju', 18000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(40, 6, 'Paket Nasi Ayam Geprek + Es Teh', 'Nasi ayam geprek dengan es teh manis', 40000.00, 50, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(41, 6, 'Paket Mie Ayam + Jus Jeruk', 'Mie ayam bakso dengan jus jeruk', 38000.00, 50, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(42, 6, 'Paket Nasi Goreng + Es Teh', 'Nasi goreng spesial dengan es teh', 40000.00, 50, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(43, 6, 'Paket Keluarga (4 orang)', 'Nasi goreng 4 + ayam bakar 4 + es teh 4', 150000.00, 20, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
+
+--
+-- Triggers `menu_items`
+--
+DELIMITER $$
+CREATE TRIGGER `tr_menu_stock_change` AFTER UPDATE ON `menu_items` FOR EACH ROW BEGIN
+    IF OLD.stock != NEW.stock THEN
+        INSERT INTO inventory_logs (menu_item_id, quantity_change, quantity_before, quantity_after, reason)
+        VALUES (NEW.id, NEW.stock - OLD.stock, OLD.stock, NEW.stock, 'system_update');
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -242,30 +321,19 @@ INSERT INTO `menu_items` (`id`, `category_id`, `name`, `description`, `price`, `
 -- Table structure for table `notifications`
 --
 
-CREATE TABLE IF NOT EXISTS `notifications` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID notifikasi',
-  `target_role` enum('admin','manager','cs','waiter','chef') DEFAULT NULL COMMENT 'Role penerima',
-  `target_user_id` int(11) DEFAULT NULL COMMENT 'User spesifik penerima',
-  `title` varchar(100) NOT NULL COMMENT 'Judul notifikasi',
-  `message` text NOT NULL COMMENT 'Isi pesan',
-  `type` enum('info','warning','success','error') DEFAULT 'info' COMMENT 'Jenis notifikasi',
-  `action_url` varchar(255) DEFAULT NULL COMMENT 'Link aksi (opsional)',
-  `is_read` tinyint(1) DEFAULT 0 COMMENT '0=Belum dibaca, 1=Sudah dibaca',
-  `read_at` datetime DEFAULT NULL COMMENT 'Waktu dibaca',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_target_role` (`target_role`),
-  KEY `idx_target_user` (`target_user_id`),
-  KEY `idx_read` (`is_read`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notifikasi internal';
-
---
--- Dumping data for table `notifications`
---
-
-INSERT INTO `notifications` (`id`, `target_role`, `target_user_id`, `title`, `message`, `type`, `action_url`, `is_read`, `read_at`, `created_at`) VALUES
-(1, 'chef', NULL, 'Order Baru', 'Meja 4 memesan makanan.', 'info', NULL, 0, NULL, '2025-12-19 01:10:41'),
-(2, 'waiter', NULL, 'Update Status', 'Order #1 siap diantar!', 'info', NULL, 0, NULL, '2025-12-19 01:10:46');
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL,
+  `target_role` varchar(50) DEFAULT NULL COMMENT 'Role yang ditarget (chef, waiter, cs, admin)',
+  `target_user_id` int(11) DEFAULT NULL COMMENT 'User spesifik yang ditarget',
+  `title` varchar(150) NOT NULL,
+  `message` text NOT NULL,
+  `type` enum('info','warning','success','error') DEFAULT 'info',
+  `is_read` tinyint(1) DEFAULT 0,
+  `read_at` datetime DEFAULT NULL,
+  `reference_type` varchar(50) DEFAULT NULL COMMENT 'order, booking, etc',
+  `reference_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -273,44 +341,38 @@ INSERT INTO `notifications` (`id`, `target_role`, `target_user_id`, `title`, `me
 -- Table structure for table `orders`
 --
 
-CREATE TABLE IF NOT EXISTS `orders` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID order',
-  `order_number` varchar(50) NOT NULL COMMENT 'Nomor order unik',
-  `table_id` int(11) NOT NULL COMMENT 'FK ke tables',
-  `customer_id` int(11) DEFAULT NULL COMMENT 'FK ke customers (opsional)',
-  `customer_name` varchar(100) DEFAULT 'Guest' COMMENT 'Nama pelanggan',
-  `customer_phone` varchar(20) DEFAULT NULL COMMENT 'No HP pelanggan',
-  `waiter_id` int(11) DEFAULT NULL COMMENT 'FK ke users (waiter)',
-  `subtotal` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Total sebelum pajak',
-  `tax` decimal(12,2) DEFAULT 0.00 COMMENT 'Pajak (10%)',
-  `service_charge` decimal(12,2) DEFAULT 0.00 COMMENT 'Service charge (5%)',
-  `discount` decimal(12,2) DEFAULT 0.00 COMMENT 'Diskon',
-  `total_amount` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Total akhir',
-  `status` enum('pending','cooking','ready','served','payment_pending','completed','cancelled') DEFAULT 'pending' COMMENT 'Status order',
-  `payment_method` varchar(20) DEFAULT NULL COMMENT 'Metode pembayaran',
-  `payment_status` varchar(20) DEFAULT 'unpaid' COMMENT 'Status pembayaran',
-  `payment_ref` varchar(100) DEFAULT NULL COMMENT 'Referensi pembayaran',
-  `payment_time` datetime DEFAULT NULL COMMENT 'Waktu pembayaran',
-  `cashier_id` int(11) DEFAULT NULL COMMENT 'FK ke users (kasir)',
-  `notes` text DEFAULT NULL COMMENT 'Catatan order',
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `order_number` varchar(50) NOT NULL,
+  `table_id` int(11) DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `customer_name` varchar(100) DEFAULT 'Guest',
+  `customer_phone` varchar(20) DEFAULT NULL,
+  `waiter_id` int(11) DEFAULT NULL,
+  `cashier_id` int(11) DEFAULT NULL,
+  `subtotal` decimal(12,2) DEFAULT 0.00,
+  `tax` decimal(12,2) DEFAULT 0.00,
+  `service_charge` decimal(12,2) DEFAULT 0.00,
+  `discount` decimal(12,2) DEFAULT 0.00,
+  `total_amount` decimal(12,2) DEFAULT 0.00,
+  `status` enum('pending','cooking','ready','served','payment_pending','completed','cancelled') DEFAULT 'pending',
+  `payment_status` enum('unpaid','partial','paid') DEFAULT 'unpaid',
+  `payment_method` varchar(50) DEFAULT NULL,
+  `payment_time` datetime DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `cancel_reason` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_order_number` (`order_number`),
-  KEY `fk_order_table` (`table_id`),
-  KEY `fk_order_waiter` (`waiter_id`),
-  KEY `idx_status` (`status`),
-  KEY `idx_payment` (`payment_status`),
-  KEY `idx_created` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data pesanan';
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `order_number`, `table_id`, `customer_id`, `customer_name`, `customer_phone`, `waiter_id`, `subtotal`, `tax`, `service_charge`, `discount`, `total_amount`, `status`, `payment_method`, `payment_status`, `payment_ref`, `payment_time`, `cashier_id`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'ORD-190210-4', 4, NULL, 'Guest', NULL, 1, 0.00, 0.00, 0.00, 0.00, 40250.00, 'completed', 'qris', 'paid', NULL, '2025-12-19 08:12:35', 2, NULL, '2025-12-19 01:10:41', '2025-12-19 01:12:35'),
-(2, 'DP-251219-1', 4, NULL, 'ayam (Deposit Booking)', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 75000.00, 'completed', 'transfer', 'paid', NULL, '2025-12-19 08:12:08', 2, NULL, '2025-12-19 01:12:08', '2025-12-19 01:12:08');
+INSERT INTO `orders` (`id`, `order_number`, `table_id`, `customer_id`, `customer_name`, `customer_phone`, `waiter_id`, `cashier_id`, `subtotal`, `tax`, `service_charge`, `discount`, `total_amount`, `status`, `payment_status`, `payment_method`, `payment_time`, `notes`, `cancel_reason`, `created_at`, `updated_at`) VALUES
+(1, 'ORD-221201-A3-01', 3, 1, 'Budi Santoso', '081111111111', 5, NULL, 100000.00, 10000.00, 5000.00, 0.00, 115000.00, 'served', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 18:45:43', '2025-12-21 19:45:43'),
+(2, 'ORD-221201-B2-02', 7, 2, 'Siti Rahayu', '081222222222', 6, NULL, 150000.00, 15000.00, 7500.00, 0.00, 172500.00, 'payment_pending', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 19:15:43', '2025-12-21 19:45:43'),
+(3, 'ORD-221201-A5-03', 5, NULL, 'Guest', NULL, 5, NULL, 80000.00, 8000.00, 4000.00, 0.00, 92000.00, 'cooking', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 19:30:43', '2025-12-21 19:45:43');
 
 -- --------------------------------------------------------
 
@@ -318,25 +380,35 @@ INSERT INTO `orders` (`id`, `order_number`, `table_id`, `customer_id`, `customer
 -- Table structure for table `order_items`
 --
 
-CREATE TABLE IF NOT EXISTS `order_items` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID item',
-  `order_id` int(11) NOT NULL COMMENT 'FK ke orders',
-  `menu_item_id` int(11) NOT NULL COMMENT 'FK ke menu_items',
-  `quantity` int(11) NOT NULL COMMENT 'Jumlah pesanan',
-  `price` decimal(12,2) NOT NULL COMMENT 'Harga satuan',
-  `notes` text DEFAULT NULL COMMENT 'Catatan khusus item',
-  `item_status` enum('pending','cooking','ready','served') DEFAULT 'pending' COMMENT 'Status item',
-  PRIMARY KEY (`id`),
-  KEY `fk_item_order` (`order_id`),
-  KEY `fk_item_menu` (`menu_item_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Detail item pesanan';
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `menu_item_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `price` decimal(12,2) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('pending','cooking','ready','served','completed','cancelled') DEFAULT 'pending',
+  `cooked_by` int(11) DEFAULT NULL COMMENT 'Chef yang memasak',
+  `cooked_at` datetime DEFAULT NULL,
+  `served_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `quantity`, `price`, `notes`, `item_status`) VALUES
-(1, 1, 2, 1, 35000.00, '', 'pending');
+INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `quantity`, `price`, `notes`, `status`, `cooked_by`, `cooked_at`, `served_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 2, 35000.00, 'Pedas level 2', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 1, 19, 2, 8000.00, 'Tanpa es', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 1, 37, 1, 22000.00, NULL, 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 2, 6, 2, 48000.00, 'Extra sambal', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 2, 9, 1, 38000.00, NULL, 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 2, 21, 2, 18000.00, NULL, 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(7, 2, 25, 1, 22000.00, 'Less sugar', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(8, 3, 4, 2, 30000.00, 'Mie extra', 'cooking', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(9, 3, 20, 2, 12000.00, NULL, 'pending', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
 
 -- --------------------------------------------------------
 
@@ -344,58 +416,19 @@ INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `quantity`, `price`
 -- Table structure for table `payment_transactions`
 --
 
-CREATE TABLE IF NOT EXISTS `payment_transactions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID transaksi',
-  `order_id` int(11) DEFAULT NULL COMMENT 'FK ke orders',
-  `booking_id` int(11) DEFAULT NULL COMMENT 'FK ke bookings (untuk DP)',
-  `transaction_type` enum('order_payment','dp_payment','refund') NOT NULL COMMENT 'Jenis transaksi',
-  `amount` decimal(12,2) NOT NULL COMMENT 'Nominal',
-  `payment_method` varchar(20) NOT NULL COMMENT 'Metode pembayaran',
-  `reference_number` varchar(100) DEFAULT NULL COMMENT 'Nomor referensi',
-  `status` enum('pending','success','failed','refunded') DEFAULT 'pending' COMMENT 'Status',
-  `cashier_id` int(11) DEFAULT NULL COMMENT 'FK ke users (kasir)',
-  `notes` text DEFAULT NULL COMMENT 'Catatan',
+CREATE TABLE `payment_transactions` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `transaction_type` enum('order_payment','partial_payment','refund','void') DEFAULT 'order_payment',
+  `amount` decimal(12,2) NOT NULL,
+  `payment_method` varchar(50) NOT NULL,
+  `status` enum('pending','success','failed','refunded') DEFAULT 'pending',
+  `cashier_id` int(11) DEFAULT NULL,
+  `reference_number` varchar(100) DEFAULT NULL COMMENT 'Nomor referensi dari payment gateway',
+  `notes` text DEFAULT NULL COMMENT 'JSON data untuk split payment item_ids',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `fk_payment_order` (`order_id`),
-  KEY `fk_payment_booking` (`booking_id`),
-  KEY `idx_method` (`payment_method`),
-  KEY `idx_created` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Riwayat transaksi pembayaran';
-
--- --------------------------------------------------------
-
---
--- Table structure for table `promo_codes`
---
-
-CREATE TABLE IF NOT EXISTS `promo_codes` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID promo',
-  `code` varchar(30) NOT NULL COMMENT 'Kode promo',
-  `name` varchar(100) NOT NULL COMMENT 'Nama promo',
-  `description` text DEFAULT NULL COMMENT 'Deskripsi',
-  `discount_type` enum('percentage','fixed') NOT NULL COMMENT 'Jenis diskon',
-  `discount_value` decimal(12,2) NOT NULL COMMENT 'Nilai diskon',
-  `min_order` decimal(12,2) DEFAULT 0.00 COMMENT 'Minimum order',
-  `max_discount` decimal(12,2) DEFAULT NULL COMMENT 'Maksimum diskon (untuk %)',
-  `usage_limit` int(11) DEFAULT NULL COMMENT 'Batas penggunaan',
-  `used_count` int(11) DEFAULT 0 COMMENT 'Jumlah sudah digunakan',
-  `start_date` date DEFAULT NULL COMMENT 'Tanggal mulai',
-  `end_date` date DEFAULT NULL COMMENT 'Tanggal berakhir',
-  `is_active` tinyint(1) DEFAULT 1 COMMENT 'Status aktif',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_promo_code` (`code`),
-  KEY `idx_active_date` (`is_active`,`start_date`,`end_date`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Kode promo';
-
---
--- Dumping data for table `promo_codes`
---
-
-INSERT INTO `promo_codes` (`id`, `code`, `name`, `description`, `discount_type`, `discount_value`, `min_order`, `max_discount`, `usage_limit`, `used_count`, `start_date`, `end_date`, `is_active`, `created_at`) VALUES
-(1, 'WELCOME10', 'Diskon Pelanggan Baru', NULL, 'percentage', 10.00, 50000.00, 25000.00, NULL, 0, '2025-12-19', '2026-01-18', 1, '2025-12-19 00:27:17'),
-(2, 'HEMAT25K', 'Potongan Langsung 25rb', NULL, 'fixed', 25000.00, 100000.00, NULL, NULL, 0, '2025-12-19', '2026-01-02', 1, '2025-12-19 00:27:17');
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -403,31 +436,43 @@ INSERT INTO `promo_codes` (`id`, `code`, `name`, `description`, `discount_type`,
 -- Table structure for table `settings`
 --
 
-CREATE TABLE IF NOT EXISTS `settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID setting',
-  `key_name` varchar(50) NOT NULL COMMENT 'Nama key',
-  `value` text NOT NULL COMMENT 'Nilai',
-  `description` text DEFAULT NULL COMMENT 'Deskripsi',
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_key` (`key_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Pengaturan sistem';
+CREATE TABLE `settings` (
+  `id` int(11) NOT NULL,
+  `key_name` varchar(100) NOT NULL,
+  `value` text NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `data_type` enum('string','integer','decimal','boolean','json') DEFAULT 'string',
+  `is_public` tinyint(1) DEFAULT 0 COMMENT 'Bisa diakses frontend',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `settings`
 --
 
-INSERT INTO `settings` (`id`, `key_name`, `value`, `description`, `updated_at`) VALUES
-(1, 'restaurant_name', 'Resto Pro', 'Nama restoran', '2025-12-19 00:27:17'),
-(2, 'restaurant_address', 'Jl. Contoh No. 123, Jakarta', 'Alamat restoran', '2025-12-19 00:27:17'),
-(3, 'restaurant_phone', '021-1234567', 'Nomor telepon', '2025-12-19 00:27:17'),
-(4, 'tax_percentage', '10', 'Persentase pajak (PB1)', '2025-12-19 00:27:17'),
-(5, 'service_charge_percentage', '5', 'Persentase service charge', '2025-12-19 00:27:17'),
-(6, 'currency', 'IDR', 'Mata uang', '2025-12-19 00:27:17'),
-(7, 'timezone', 'Asia/Jakarta', 'Zona waktu', '2025-12-19 00:27:17'),
-(8, 'opening_time', '10:00', 'Jam buka', '2025-12-19 00:27:17'),
-(9, 'closing_time', '22:00', 'Jam tutup', '2025-12-19 00:27:17'),
-(10, 'loyalty_points_per_thousand', '1', 'Poin per Rp 1000', '2025-12-19 00:27:17');
+INSERT INTO `settings` (`id`, `key_name`, `value`, `description`, `data_type`, `is_public`, `created_at`, `updated_at`) VALUES
+(1, 'restaurant_name', 'Resto Nusantara', 'Nama restoran', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 'restaurant_address', 'Jl. Merdeka No. 123, Jakarta', 'Alamat restoran', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 'restaurant_phone', '021-12345678', 'Nomor telepon restoran', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 'restaurant_email', 'info@restonusantara.com', 'Email restoran', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 'tax_percentage', '10', 'Persentase pajak PB1', 'decimal', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 'service_charge_percentage', '5', 'Persentase service charge', 'decimal', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(7, 'loyalty_points_per_thousand', '1', 'Poin loyalty per Rp 1000', 'integer', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(8, 'min_points_redeem', '100', 'Minimum poin untuk redeem', 'integer', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(9, 'point_value', '100', 'Nilai 1 poin dalam Rupiah', 'integer', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(10, 'opening_time', '10:00', 'Jam buka', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(11, 'closing_time', '22:00', 'Jam tutup', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(12, 'currency', 'IDR', 'Mata uang', 'string', 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(13, 'timezone', 'Asia/Jakarta', 'Timezone', 'string', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(14, 'receipt_footer', 'Terima kasih atas kunjungan Anda!', 'Footer struk', 'string', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(15, 'allow_split_payment', '1', 'Izinkan split payment', 'boolean', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(16, 'require_customer_for_dine_in', '0', 'Wajib input customer untuk dine-in', 'boolean', 0, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(17, 'bank_bca_account', '1234567890', 'Nomor rekening BCA', 'string', 0, '2025-12-21 20:15:16', '2025-12-21 20:15:16'),
+(18, 'bank_bca_name', 'RESTO NUSANTARA', 'Nama rekening BCA', 'string', 0, '2025-12-21 20:15:16', '2025-12-21 20:15:16'),
+(19, 'bank_mandiri_account', '0987654321', 'Nomor rekening Mandiri', 'string', 0, '2025-12-21 20:15:16', '2025-12-21 20:15:16'),
+(20, 'bank_mandiri_name', 'RESTO NUSANTARA', 'Nama rekening Mandiri', 'string', 0, '2025-12-21 20:15:16', '2025-12-21 20:15:16'),
+(21, 'qris_merchant_id', 'RESTONU001', 'Merchant ID QRIS', 'string', 0, '2025-12-21 20:15:16', '2025-12-21 20:15:16');
 
 -- --------------------------------------------------------
 
@@ -435,21 +480,16 @@ INSERT INTO `settings` (`id`, `key_name`, `value`, `description`, `updated_at`) 
 -- Table structure for table `staff_access_codes`
 --
 
-CREATE TABLE IF NOT EXISTS `staff_access_codes` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID kode',
-  `code` varchar(30) NOT NULL COMMENT 'Kode akses unik',
-  `target_role` enum('manager','cs','waiter','chef') NOT NULL COMMENT 'Role tujuan',
-  `is_used` tinyint(1) DEFAULT 0 COMMENT '0=Belum dipakai, 1=Sudah dipakai',
-  `used_by_user_id` int(11) DEFAULT NULL COMMENT 'FK ke users yang menggunakan',
-  `used_at` datetime DEFAULT NULL COMMENT 'Waktu digunakan',
-  `expires_at` datetime DEFAULT NULL COMMENT 'Waktu kadaluarsa',
-  `created_by` int(11) NOT NULL COMMENT 'FK ke users (pembuat)',
+CREATE TABLE `staff_access_codes` (
+  `id` int(11) NOT NULL,
+  `code` varchar(20) NOT NULL,
+  `target_role` varchar(50) NOT NULL,
+  `is_used` tinyint(1) DEFAULT 0,
+  `used_by` int(11) DEFAULT NULL,
+  `created_by` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_code` (`code`),
-  KEY `fk_code_creator` (`created_by`),
-  KEY `idx_used` (`is_used`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Kode akses staff';
+  `expires_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -457,36 +497,42 @@ CREATE TABLE IF NOT EXISTS `staff_access_codes` (
 -- Table structure for table `tables`
 --
 
-CREATE TABLE IF NOT EXISTS `tables` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID meja',
-  `table_number` varchar(10) NOT NULL COMMENT 'Nomor meja (T-01, VIP-01)',
-  `capacity` int(11) NOT NULL COMMENT 'Kapasitas orang',
-  `status` enum('available','reserved','occupied','dirty') DEFAULT 'available' COMMENT 'Status meja',
-  `location` varchar(50) DEFAULT 'Indoor' COMMENT 'Lokasi (Indoor/Outdoor/VIP Room)',
-  `current_order_id` int(11) DEFAULT NULL COMMENT 'ID order aktif di meja ini',
-  `min_dp` decimal(12,2) NOT NULL DEFAULT 100000.00 COMMENT 'Minimum DP untuk reservasi',
-  `notes` text DEFAULT NULL COMMENT 'Catatan khusus meja',
+CREATE TABLE `tables` (
+  `id` int(11) NOT NULL,
+  `table_number` varchar(20) NOT NULL,
+  `capacity` int(11) DEFAULT 4,
+  `location` varchar(50) DEFAULT NULL COMMENT 'indoor, outdoor, vip, etc',
+  `status` enum('available','occupied','reserved','dirty') DEFAULT 'available',
+  `current_order_id` int(11) DEFAULT NULL,
+  `qr_code` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_table_number` (`table_number`),
-  KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data meja restoran';
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `min_dp` decimal(12,2) DEFAULT 0.00
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tables`
 --
 
-INSERT INTO `tables` (`id`, `table_number`, `capacity`, `status`, `location`, `current_order_id`, `min_dp`, `notes`, `created_at`) VALUES
-(1, 'T-01', 2, 'available', 'Indoor', NULL, 50000.00, NULL, '2025-12-19 00:27:16'),
-(2, 'T-02', 2, 'available', 'Indoor', NULL, 50000.00, NULL, '2025-12-19 00:27:16'),
-(3, 'T-03', 4, 'available', 'Indoor', NULL, 75000.00, NULL, '2025-12-19 00:27:16'),
-(4, 'T-04', 4, 'dirty', 'Indoor', NULL, 75000.00, NULL, '2025-12-19 00:27:16'),
-(5, 'T-05', 6, 'available', 'Indoor', NULL, 100000.00, NULL, '2025-12-19 00:27:16'),
-(6, 'T-06', 6, 'available', 'Outdoor', NULL, 100000.00, NULL, '2025-12-19 00:27:16'),
-(7, 'T-07', 4, 'available', 'Outdoor', NULL, 75000.00, NULL, '2025-12-19 00:27:16'),
-(8, 'T-08', 4, 'available', 'Outdoor', NULL, 75000.00, NULL, '2025-12-19 00:27:16'),
-(9, 'VIP-01', 10, 'available', 'VIP Room', NULL, 250000.00, NULL, '2025-12-19 00:27:16'),
-(10, 'VIP-02', 12, 'available', 'VIP Room', NULL, 300000.00, NULL, '2025-12-19 00:27:16');
+INSERT INTO `tables` (`id`, `table_number`, `capacity`, `location`, `status`, `current_order_id`, `qr_code`, `is_active`, `created_at`, `updated_at`, `min_dp`) VALUES
+(1, 'A1', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(2, 'A2', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(3, 'A3', 4, 'indoor', 'occupied', 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(4, 'A4', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(5, 'A5', 4, 'indoor', 'occupied', 3, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(6, 'B1', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(7, 'B2', 4, 'indoor', 'occupied', 2, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(8, 'B3', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(9, 'B4', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(10, 'B5', 8, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(11, 'C1', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
+(12, 'C2', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
+(13, 'C3', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
+(14, 'C4', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
+(15, 'V1', 8, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00),
+(16, 'V2', 10, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00),
+(17, 'V3', 12, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00);
 
 -- --------------------------------------------------------
 
@@ -494,34 +540,371 @@ INSERT INTO `tables` (`id`, `table_number`, `capacity`, `status`, `location`, `c
 -- Table structure for table `users`
 --
 
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID unik pengguna',
-  `name` varchar(100) NOT NULL COMMENT 'Nama lengkap',
-  `email` varchar(100) NOT NULL COMMENT 'Email untuk login',
-  `password` varchar(255) NOT NULL COMMENT 'Password terenkripsi MD5',
-  `phone` varchar(20) DEFAULT NULL COMMENT 'Nomor telepon',
-  `role` enum('admin','manager','cs','waiter','chef') NOT NULL DEFAULT 'waiter' COMMENT 'Peran pengguna',
-  `is_active` tinyint(1) DEFAULT 1 COMMENT '1=Aktif, 0=Nonaktif',
-  `fcm_token` text DEFAULT NULL COMMENT 'Token untuk Firebase Push Notification',
-  `avatar_url` varchar(255) DEFAULT NULL COMMENT 'URL foto profil',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Waktu dibuat',
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Waktu diperbarui',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_email` (`email`),
-  KEY `idx_role` (`role`),
-  KEY `idx_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabel pengguna sistem';
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `role` enum('admin','manager','chef','waiter','cs') NOT NULL DEFAULT 'waiter',
+  `avatar_url` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `last_login` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `role`, `is_active`, `fcm_token`, `avatar_url`, `created_at`, `updated_at`) VALUES
-(1, 'Super Admin', 'admin@resto.com', '0192023a7bbd73250516f069df18b500', NULL, 'admin', 1, NULL, NULL, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(2, 'Demo Manager', 'manager@resto.com', '0795151defba7a4b5dfa89170de46277', NULL, 'manager', 1, NULL, NULL, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(3, 'Demo CS', 'cs@resto.com', '8551e0027ff3a8de9662eb3b8a16c23e', NULL, 'cs', 1, NULL, NULL, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(4, 'Demo Waiter', 'waiter@resto.com', 'e82d611b52164e7474fd1f3b6d2c68db', NULL, 'waiter', 1, NULL, NULL, '2025-12-19 00:27:16', '2025-12-19 00:27:16'),
-(5, 'Demo Chef', 'chef@resto.com', '677dbf3b047f16c7c5b5554a8259f2eb', NULL, 'chef', 1, NULL, NULL, '2025-12-19 00:27:16', '2025-12-19 00:27:16');
+INSERT INTO `users` (`id`, `username`, `password`, `name`, `email`, `phone`, `role`, `avatar_url`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
+(1, 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin@resto.com', '081234567890', 'admin', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 'manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Manager Resto', 'manager@resto.com', '081234567891', 'manager', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 'chef1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Chef Budi', 'chef1@resto.com', '081234567892', 'chef', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 'chef2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Chef Ani', 'chef2@resto.com', '081234567893', 'chef', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 'waiter1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Waiter Dimas', 'waiter1@resto.com', '081234567894', 'waiter', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 'waiter2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Waiter Sari', 'waiter2@resto.com', '081234567895', 'waiter', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(7, 'waiter3', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Waiter Rudi', 'waiter3@resto.com', '081234567896', 'waiter', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(8, 'kasir1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kasir Maya', 'kasir1@resto.com', '081234567897', 'cs', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(9, 'kasir2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kasir Dewi', 'kasir2@resto.com', '081234567898', 'cs', NULL, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_daily_sales`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_daily_sales` (
+`sale_date` date
+,`total_orders` bigint(21)
+,`total_revenue` decimal(34,2)
+,`total_tax` decimal(34,2)
+,`total_service` decimal(34,2)
+,`avg_order_value` decimal(16,6)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_kitchen_orders`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_kitchen_orders` (
+`order_id` int(11)
+,`order_number` varchar(50)
+,`table_number` varchar(20)
+,`order_status` enum('pending','cooking','ready','served','payment_pending','completed','cancelled')
+,`item_id` int(11)
+,`menu_name` varchar(150)
+,`quantity` int(11)
+,`notes` text
+,`item_status` enum('pending','cooking','ready','served','completed','cancelled')
+,`created_at` timestamp
+,`waiting_minutes` bigint(21)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_menu_performance`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_menu_performance` (
+`id` int(11)
+,`name` varchar(150)
+,`category` varchar(100)
+,`price` decimal(12,2)
+,`total_sold` decimal(32,0)
+,`total_revenue` decimal(44,2)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_daily_sales`
+--
+DROP TABLE IF EXISTS `v_daily_sales`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_daily_sales`  AS SELECT cast(`orders`.`created_at` as date) AS `sale_date`, count(0) AS `total_orders`, sum(`orders`.`total_amount`) AS `total_revenue`, sum(`orders`.`tax`) AS `total_tax`, sum(`orders`.`service_charge`) AS `total_service`, avg(`orders`.`total_amount`) AS `avg_order_value` FROM `orders` WHERE `orders`.`status` = 'completed' GROUP BY cast(`orders`.`created_at` as date) ORDER BY cast(`orders`.`created_at` as date) DESC ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_kitchen_orders`
+--
+DROP TABLE IF EXISTS `v_kitchen_orders`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_kitchen_orders`  AS SELECT `o`.`id` AS `order_id`, `o`.`order_number` AS `order_number`, `t`.`table_number` AS `table_number`, `o`.`status` AS `order_status`, `oi`.`id` AS `item_id`, `m`.`name` AS `menu_name`, `oi`.`quantity` AS `quantity`, `oi`.`notes` AS `notes`, `oi`.`status` AS `item_status`, `o`.`created_at` AS `created_at`, timestampdiff(MINUTE,`o`.`created_at`,current_timestamp()) AS `waiting_minutes` FROM (((`orders` `o` join `tables` `t` on(`o`.`table_id` = `t`.`id`)) join `order_items` `oi` on(`o`.`id` = `oi`.`order_id`)) join `menu_items` `m` on(`oi`.`menu_item_id` = `m`.`id`)) WHERE `o`.`status` in ('pending','cooking') ORDER BY `o`.`created_at` ASC ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_menu_performance`
+--
+DROP TABLE IF EXISTS `v_menu_performance`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_menu_performance`  AS SELECT `m`.`id` AS `id`, `m`.`name` AS `name`, `c`.`name` AS `category`, `m`.`price` AS `price`, coalesce(sum(`oi`.`quantity`),0) AS `total_sold`, coalesce(sum(`oi`.`quantity` * `oi`.`price`),0) AS `total_revenue` FROM (((`menu_items` `m` left join `categories` `c` on(`m`.`category_id` = `c`.`id`)) left join `order_items` `oi` on(`m`.`id` = `oi`.`menu_item_id`)) left join `orders` `o` on(`oi`.`order_id` = `o`.`id` and `o`.`status` = 'completed')) GROUP BY `m`.`id`, `m`.`name`, `c`.`name`, `m`.`price` ORDER BY coalesce(sum(`oi`.`quantity`),0) DESC ;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_action` (`action`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `bookings`
+--
+ALTER TABLE `bookings`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_table_id` (`table_id`),
+  ADD KEY `idx_booking_date` (`booking_date`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_customer_phone` (`customer_phone`),
+  ADD KEY `idx_table_date_status` (`table_id`,`booking_date`,`status`),
+  ADD KEY `fk_booking_customer` (`customer_id`),
+  ADD KEY `fk_booking_confirmer` (`confirmed_by`),
+  ADD KEY `idx_bookings_table_date` (`table_id`,`booking_date`,`status`);
+
+--
+-- Indexes for table `booking_payments`
+--
+ALTER TABLE `booking_payments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_booking_id` (`booking_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `fk_bookingpayment_cashier` (`cashier_id`);
+
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_sort_order` (`sort_order`);
+
+--
+-- Indexes for table `customers`
+--
+ALTER TABLE `customers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `phone` (`phone`),
+  ADD KEY `idx_phone` (`phone`),
+  ADD KEY `idx_membership_tier` (`membership_tier`),
+  ADD KEY `idx_loyalty_points` (`loyalty_points`);
+
+--
+-- Indexes for table `inventory_logs`
+--
+ALTER TABLE `inventory_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_menu_item` (`menu_item_id`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_reason` (`reason`),
+  ADD KEY `fk_invlog_user` (`user_id`);
+
+--
+-- Indexes for table `menu_items`
+--
+ALTER TABLE `menu_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_category` (`category_id`),
+  ADD KEY `idx_is_available` (`is_available`),
+  ADD KEY `idx_price` (`price`);
+
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_target_role` (`target_role`),
+  ADD KEY `idx_target_user` (`target_user_id`),
+  ADD KEY `idx_is_read` (`is_read`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `order_number` (`order_number`),
+  ADD KEY `idx_order_number` (`order_number`),
+  ADD KEY `idx_table_id` (`table_id`),
+  ADD KEY `idx_customer_id` (`customer_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_payment_status` (`payment_status`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_waiter_id` (`waiter_id`),
+  ADD KEY `idx_status_date` (`status`,`created_at`),
+  ADD KEY `fk_order_cashier` (`cashier_id`),
+  ADD KEY `idx_orders_role_query` (`status`,`created_at`,`table_id`),
+  ADD KEY `idx_orders_table_status` (`table_id`,`status`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_order_id` (`order_id`),
+  ADD KEY `idx_menu_item_id` (`menu_item_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `fk_orderitem_chef` (`cooked_by`),
+  ADD KEY `idx_order_items_order_status` (`order_id`,`status`);
+
+--
+-- Indexes for table `payment_transactions`
+--
+ALTER TABLE `payment_transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_order_id` (`order_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_payment_method` (`payment_method`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `fk_transaction_cashier` (`cashier_id`),
+  ADD KEY `idx_transactions_order_type` (`order_id`,`transaction_type`);
+
+--
+-- Indexes for table `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `key_name` (`key_name`),
+  ADD KEY `idx_key_name` (`key_name`);
+
+--
+-- Indexes for table `staff_access_codes`
+--
+ALTER TABLE `staff_access_codes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `code` (`code`),
+  ADD KEY `idx_code` (`code`),
+  ADD KEY `idx_is_used` (`is_used`),
+  ADD KEY `idx_expires` (`expires_at`),
+  ADD KEY `idx_target_role` (`target_role`),
+  ADD KEY `fk_code_creator` (`created_by`),
+  ADD KEY `fk_code_used_by` (`used_by`);
+
+--
+-- Indexes for table `tables`
+--
+ALTER TABLE `tables`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `table_number` (`table_number`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_table_number` (`table_number`),
+  ADD KEY `idx_current_order` (`current_order_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD KEY `idx_username` (`username`),
+  ADD KEY `idx_role` (`role`),
+  ADD KEY `idx_is_active` (`is_active`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `bookings`
+--
+ALTER TABLE `bookings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `booking_payments`
+--
+ALTER TABLE `booking_payments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `customers`
+--
+ALTER TABLE `customers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `inventory_logs`
+--
+ALTER TABLE `inventory_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `menu_items`
+--
+ALTER TABLE `menu_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `payment_transactions`
+--
+ALTER TABLE `payment_transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `settings`
+--
+ALTER TABLE `settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT for table `staff_access_codes`
+--
+ALTER TABLE `staff_access_codes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tables`
+--
+ALTER TABLE `tables`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
@@ -531,40 +914,72 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `role`, `is_act
 -- Constraints for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  ADD CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `attendance`
---
-ALTER TABLE `attendance`
-  ADD CONSTRAINT `fk_attendance_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `bookings`
 --
 ALTER TABLE `bookings`
-  ADD CONSTRAINT `fk_booking_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_booking_table` FOREIGN KEY (`table_id`) REFERENCES `tables` (`id`);
+  ADD CONSTRAINT `fk_booking_confirmer` FOREIGN KEY (`confirmed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_booking_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_booking_table` FOREIGN KEY (`table_id`) REFERENCES `tables` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `booking_payments`
+--
+ALTER TABLE `booking_payments`
+  ADD CONSTRAINT `fk_bookingpayment_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_bookingpayment_cashier` FOREIGN KEY (`cashier_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `inventory_logs`
+--
+ALTER TABLE `inventory_logs`
+  ADD CONSTRAINT `fk_invlog_menu` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_invlog_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `menu_items`
 --
 ALTER TABLE `menu_items`
-  ADD CONSTRAINT `fk_menu_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
+  ADD CONSTRAINT `fk_menu_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `fk_notif_user` FOREIGN KEY (`target_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_order_table` FOREIGN KEY (`table_id`) REFERENCES `tables` (`id`),
-  ADD CONSTRAINT `fk_order_waiter` FOREIGN KEY (`waiter_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_order_cashier` FOREIGN KEY (`cashier_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_order_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_order_table` FOREIGN KEY (`table_id`) REFERENCES `tables` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_order_waiter` FOREIGN KEY (`waiter_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `order_items`
 --
 ALTER TABLE `order_items`
-  ADD CONSTRAINT `fk_item_menu` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`),
-  ADD CONSTRAINT `fk_item_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_orderitem_chef` FOREIGN KEY (`cooked_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_orderitem_menu` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_orderitem_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `payment_transactions`
+--
+ALTER TABLE `payment_transactions`
+  ADD CONSTRAINT `fk_transaction_cashier` FOREIGN KEY (`cashier_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_transaction_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `staff_access_codes`
+--
+ALTER TABLE `staff_access_codes`
+  ADD CONSTRAINT `fk_code_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_code_used_by` FOREIGN KEY (`used_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,5 +1,6 @@
 <?php
 // api/booking.php - ULTIMATE (Min DP Check, Auto Transaction, No Refund)
+require_once '../utils/helpers.php';
 require_once '../config/database.php';
 
 $database = new Database();

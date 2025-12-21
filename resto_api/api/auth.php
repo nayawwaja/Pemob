@@ -1,4 +1,5 @@
 <?php
+require_once '../utils/helpers.php';
 require_once '../config/database.php';
 $db = (new Database())->getConnection();
 
@@ -24,12 +25,13 @@ function login($db, $input) {
         sendResponse(false, "Email dan password wajib diisi", null, 400);
     }
 
-    // Cek User Aktif
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = ? AND password = ?");
-    $stmt->execute([$input['email'], md5($input['password'])]);
+    // 1. Ambil user berdasarkan email saja
+    $stmt = $db->prepare("SELECT * FROM users WHERE LOWER(email) = LOWER(?)");
+    $stmt->execute([$input['email']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
+    // 2. Jika user ada DAN password cocok (menggunakan password_verify untuk Bcrypt)
+    if ($user && password_verify($input['password'], $user['password'])) {
         if ($user['is_active'] == 0) {
             sendResponse(false, "Akun dinonaktifkan. Hubungi Admin.", null, 403);
         }
@@ -50,6 +52,7 @@ function login($db, $input) {
         logActivity($db, $user['id'], 'LOGIN', 'User logged in');
         sendResponse(true, "Login berhasil", ["user" => $user, "token" => $token]);
     } else {
+        // Jika user tidak ditemukan atau password salah
         sendResponse(false, "Email atau password salah", null, 401);
     }
 }
@@ -94,10 +97,12 @@ function register($db, $input) {
         // Insert User
         $sql = "INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)";
         $stmt = $db->prepare($sql);
+        // Gunakan password_hash() untuk keamanan, sesuai standar modern dan DB
+        $hashedPassword = password_hash($input['password'], PASSWORD_BCRYPT);
         $stmt->execute([
             $input['name'], 
             $input['email'], 
-            md5($input['password']), 
+            $hashedPassword, 
             $input['phone'] ?? '', 
             $role
         ]);

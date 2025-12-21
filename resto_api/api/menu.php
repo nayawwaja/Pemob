@@ -1,5 +1,5 @@
 <?php
-// api/menu.php - FIX DISCOUNT PRICE & MANAGER ROLE
+require_once '../utils/helpers.php';
 require_once '../config/database.php';
 $db = (new Database())->getConnection();
 
@@ -143,9 +143,9 @@ function addMenu($db, $input) {
     
     // Query dengan discount_price
     $query = "INSERT INTO menu_items 
-              (category_id, name, description, price, discount_price, stock, image_url, is_available, is_active) 
+              (category_id, name, description, price, discount_price, stock, image_url, is_active) 
               VALUES 
-              (:category_id, :name, :description, :price, :discount_price, :stock, :image_url, :is_available, 1)";
+              (:category_id, :name, :description, :price, :discount_price, :stock, :image_url, :is_active)";
     
     try {
         $stmt = $db->prepare($query);
@@ -157,7 +157,7 @@ function addMenu($db, $input) {
             ':discount_price' => !empty($input['discount_price']) ? $input['discount_price'] : null,
             ':stock' => $input['stock'] ?? 0,
             ':image_url' => $input['image_url'] ?? '',
-            ':is_available' => isset($input['is_available']) ? $input['is_available'] : 1
+            ':is_active' => isset($input['is_active']) ? $input['is_active'] : 1
         ];
         
         if ($stmt->execute($params)) {
@@ -182,7 +182,7 @@ function updateMenu($db, $input) {
               price = :price,
               discount_price = :discount_price,
               stock = :stock,
-              is_available = :is_available,
+              is_active = :is_active,
               image_url = :image_url
               WHERE id = :id";
     
@@ -196,7 +196,7 @@ function updateMenu($db, $input) {
             ':price' => $input['price'],
             ':discount_price' => !empty($input['discount_price']) ? $input['discount_price'] : null,
             ':stock' => $input['stock'] ?? 0,
-            ':is_available' => isset($input['is_available']) ? $input['is_available'] : 1,
+            ':is_active' => isset($input['is_active']) ? $input['is_active'] : 1,
             ':image_url' => $input['image_url'] ?? ''
         ];
         
@@ -238,5 +238,4 @@ function updateStock($db, $input) {
     } else {
         sendResponse(false, "Gagal mengupdate stok", null, 500);
     }
-}
-?>
+}?>

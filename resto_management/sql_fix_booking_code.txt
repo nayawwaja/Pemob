@@ -1,0 +1,7 @@
+To fix the "Unknown column 'booking_code'" error, you need to execute the following SQL command on your `resto_db` database:
+
+```sql
+ALTER TABLE `bookings` ADD `booking_code` VARCHAR(20) DEFAULT NULL AFTER `customer_email`;
+```
+
+This command will add the missing `booking_code` column to your `bookings` table. You can run this using a tool like phpMyAdmin or a MySQL client.
