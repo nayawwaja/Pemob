@@ -12,14 +12,14 @@ Berikut adalah file **README.md** yang dirancang dengan desain modern, stylish, 
 
 ## 👥 Tim Pengembang (Kelompok 4)
 
-| Kontributor | NIM | Profil |
+| Kontributor | NIM |
 | --- | --- | --- |
-| <img src="[https://github.com/nadya.png](https://www.google.com/search?q=https://github.com/nadya.png)" width="50" style="border-radius:50%"/> **Nadya Putri Anggina** | `241712040` | [🔗 View GitHub](https://github.com/nadya) |
-| <img src="[https://github.com/bernita.png](https://www.google.com/search?q=https://github.com/bernita.png)" width="50" style="border-radius:50%"/> **Bernita Agustien P H** | `241712016` | [🔗 View GitHub](https://www.google.com/search?q=https://github.com/bernita) |
-| <img src="[https://github.com/rima.png](https://www.google.com/search?q=https://github.com/rima.png)" width="50" style="border-radius:50%"/> **Rima Nazwa** | `241712004` | [🔗 View GitHub](https://www.google.com/search?q=https://github.com/rima) |
-| <img src="[https://github.com/anggasana.png](https://www.google.com/search?q=https://github.com/anggasana.png)" width="50" style="border-radius:50%"/> **Anggasana Simanullang** | `241712014` | [🔗 View GitHub](https://www.google.com/search?q=https://github.com/anggasana) |
-| <img src="[https://github.com/ihsan.png](https://www.google.com/search?q=https://github.com/ihsan.png)" width="50" style="border-radius:50%"/> **M. Ihsan Al Munawar** | `241712007` | [🔗 View GitHub](https://www.google.com/search?q=https://github.com/ihsan) |
-| <img src="[https://github.com/michael.png](https://www.google.com/search?q=https://github.com/michael.png)" width="50" style="border-radius:50%"/> **Michael Deryl A M M** | `241712042` | [🔗 View GitHub](https://github.com/michael) |
+| <img src="[[https://github.com/nadya.png](https://www.google.com/search?q=https://github.com/nadya.png](https://avatars.githubusercontent.com/u/238160000?v=4))" width="50" style="border-radius:50%"/> **Nadya Putri Anggina** | `241712040` |
+| <img src="[https://github.com/bernita.png](https://www.google.com/search?q=https://github.com/bernita.png)" width="50" style="border-radius:50%"/> **Bernita Agustien P H** | `241712016` | 
+| <img src="[https://github.com/rima.png](https://www.google.com/search?q=https://github.com/rima.png)" width="50" style="border-radius:50%"/> **Rima Nazwa** | `241712004` |
+| <img src="[https://github.com/anggasana.png](https://www.google.com/search?q=https://github.com/anggasana.png)" width="50" style="border-radius:50%"/> **Anggasana Simanullang** | `241712014` |
+| <img src="[https://github.com/ihsan.png](https://www.google.com/search?q=https://github.com/ihsan.png)" width="50" style="border-radius:50%"/> **M. Ihsan Al Munawar** | `241712007` |
+| <img src="[https://github.com/michael.png](https://www.google.com/search?q=https://github.com/michael.png)" width="50" style="border-radius:50%"/> **Michael Deryl A M M** | `241712042` |
 
 ---
 
