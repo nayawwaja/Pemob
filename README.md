@@ -1,12 +1,3 @@
-Mantap. Basisnya **sudah bagus & “dosen-approved”**, sekarang kita **naikkan kelasnya** jadi:
-
-* 🌌 **Dark / Neon theme**
-* ⚡ **Animated badges & neon accent**
-* 🎞️ **Animasi relevan (GIF mockup / Lottie hint)**
-* ✨ Tetap **rapi, profesional, dan nggak lebay**
-
-Di bawah ini **VERSI UPGRADE README.md**
-➡️ **langsung replace / gabung** dengan punyamu (aku jaga strukturnya).
 
 ---
 
@@ -42,19 +33,6 @@ Di bawah ini **VERSI UPGRADE README.md**
 
 > ⚡ Fokus pada **kecepatan operasional**, **visual monitoring**, dan **keamanan akses berbasis role**.
 
----
-
-## 🎞️ UI & Animation Showcase
-<p align="center">
-  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="220"/>
-  <img src="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif" width="220"/>
-  <img src="https://media.giphy.com/media/3o7aD4pR1HbHJFTBF6/giphy.gif" width="220"/>
-</p>
-
-🔹 **Animated Splash Screen**  
-🔹 **Smooth Fade & Scale Transition**  
-🔹 **Role-based Auto Navigation**  
-🔹 **Neon Accent UI (Gold × Cyan)**  
 
 ---
 
@@ -114,9 +92,9 @@ Di bawah ini **VERSI UPGRADE README.md**
     <td align="center"><img src="https://ui-avatars.com/api/?name=Rima+Nazwa&background=0A0A0A&color=00FFD1&size=100"/><br><b>Rima</b><br>241712004</td>
   </tr>
   <tr>
+    <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100"/><br><b>Michael</b></a><br>241712042</td>
     <td align="center"><a href="https://github.com/Anggasana-11"><img src="https://github.com/Anggasana-11.png?size=100"/><br><b>Angga</b></a><br>241712014</td>
     <td align="center"><img src="https://ui-avatars.com/api/?name=Ihsan+Munawar&background=0A0A0A&color=FFD700&size=100"/><br><b>Ihsan</b><br>241712007</td>
-    <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100"/><br><b>Michael</b></a><br>241712042</td>
   </tr>
 </table>
 
@@ -149,23 +127,10 @@ Password : password
 ---
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=00FFD1&center=true&vCenter=true&width=440&lines=Built+with+Flutter;Dark+Neon+Restaurant+System;Team+Resto+Pro" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=00FFD1&center=true&vCenter=true&width=440&lines=Built+with+Flutter;Terimakasih+Atas+Kerjasamanta;Team+Resto+Pro" />
 </p>
 
 <p align="center">
   <strong>⚡ Built with ❤️ by Team RESTO PRO</strong>
 </p>
 ```
-
----
-
-### 🔥 Mau aku lanjut?
-
-Aku bisa:
-
-* 🎨 **Bikinin ThemeConfig Flutter (Gold × Neon Cyan)**
-* 🎞️ **Splash Screen versi Lottie**
-* 🧠 **ERD + Arsitektur Sistem buat laporan**
-* 📊 **Diagram alur role (Admin → Chef → Waiter)**
-
-Tinggal bilang: **“lanjut bagian X”** 😎
