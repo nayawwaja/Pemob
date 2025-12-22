@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `resto_db`
 --
+CREATE DATABASE IF NOT EXISTS resto_db
+USE resto_db;
 
 DELIMITER $$
 --
