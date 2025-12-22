@@ -41,12 +41,9 @@
 | ⚙️ Feature | 💡 Description |
 | :--- | :--- |
 | **Multi-Role Access Control** | Admin, Manager, Chef, Waiter, CS dengan dashboard unik |
-| **Animated Splash Screen** | Fade + Elastic Scale animation berbasis Flutter |
 | **Real-Time Kitchen Board** | Pemisahan pesanan *Incoming* & *Cooking* |
 | **Smart Booking + DP** | Reservasi otomatis + validasi Down Payment |
 | **Interactive Table Map** | Status meja: Available • Reserved • Dirty |
-| **Split Bill Payment** | Pembayaran per-item untuk grup |
-| **Loyalty System** | Tiering member (Silver / Gold / VIP) |
 | **Business Analytics** | Grafik pendapatan & menu terlaris |
 | **Staff Attendance** | Clock-In / Clock-Out dengan validasi role |
 
@@ -60,7 +57,8 @@
 </p>
 
 - Flutter 3.x  
-- Dart  
+- Dart
+- Android Version: Min. SDK 21 (Android 5.0 Lollipop) / Target SDK 34 (Android 14)
 - Material Design (Dark Mode Custom Theme)
 
 ### 🔥 Backend
@@ -68,9 +66,10 @@
   <img src="https://skillicons.dev/icons?i=php,mysql" />
 </p>
 
-- PHP Native (Secure REST API)
-- MySQL Database
-- PDO & Token-Based Session
+- **Language:** PHP Native (Secure REST API)
+- **Database:** MySQL Database
+- **API Type:** **Private REST API** (Custom build for Resto Pro)
+- **Security:** PDO & Token-Based Session Management
 
 ### 📦 Libraries
 - `shared_preferences` → Session & Role Memory  
