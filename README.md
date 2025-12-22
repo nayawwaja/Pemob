@@ -6,7 +6,7 @@
 </p>
 
 <h1 align="center">
-  🏆 <span style="color:#00FFD1">RESTO</span> <span style="color:#FFD700">PRO</span>
+  🍴 <span style="color:#00FFD1">RESTO</span> <span style="color:#FFD700">PRO</span>
 </h1>
 
 <p align="center">
