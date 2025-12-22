@@ -102,12 +102,23 @@
 
 ## 💻 Installation Guide
 
-```bash
-git clone https://github.com/USERNAME/REPO](https://github.com/nayawwaja/Pemob.git
+1️⃣ Backend Setup
+Import resto_db.sql ke MySQL
+
+2️⃣ API Configuration
+Pastikan folder resto_api ada di htdocs
+Test API:
+```http://localhost/resto_api/api/auth.php```
+
+3️⃣ Flutter Setup
+```
 cd resto_management
 flutter pub get
 flutter run
-````
+```
+4️⃣ API IP Configuration
+Edit api_config.dart:
+```static const baseUrl = "http://10.0.2.2/resto_api/api";```
 
 ### 🔐 Default Credential
 
