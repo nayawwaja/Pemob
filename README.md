@@ -1,182 +1,97 @@
-Berikut adalah file **README.md** yang dirancang dengan desain modern, stylish, dan interaktif. Dokumentasi ini mencakup identitas visual aplikasi sesuai dengan *Splash Screen*  dan teknis lengkap berdasarkan kode sumber yang disediakan.
+<p align="center">
+  <img src="https://img.icons8.com/fluent/100/000000/restaurant.png" alt="Resto Pro Logo" width="100"/>
+</p>
+
+<h1 align="center">🏆 RESTO PRO</h1>
+
+<p align="center">
+  <strong>Sistem Manajemen Restoran Terintegrasi Ultimate v2.0</strong><br>
+  <em>Solusi all-in-one untuk efisiensi operasional dapur, pelayan, hingga kasir.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
+  <img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+</p>
 
 ---
 
-# <img src="[https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Food%20and%20Drink/Cooking.png](https://www.google.com/search?q=https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Food%2520and%2520Drink/Cooking.png)" width="45" /> RESTO PRO - Ultimate Build v2.0
-
-> **Sistem Manajemen Restoran Terintegrasi** | Menghubungkan Dapur, Pelayan, Kasir, dan Pemilik dalam satu ekosistem digital *real-time* .
-> 
-> 
+### 📝 Deskripsi Singkat
+**RESTO PRO** adalah aplikasi manajemen restoran berbasis mobile yang dirancang untuk menyinkronkan seluruh departemen dalam sebuah restoran secara *real-time*. Mulai dari reservasi meja dengan sistem Down Payment (DP), pemesanan menu digital, monitoring antrean dapur, hingga pelaporan keuangan mendetail untuk pemilik bisnis.
 
 ---
 
-## 👥 Tim Pengembang (Kelompok 4)
+### 🚀 Fitur Utama
 
-| Kontributor | NIM |
-| --- | --- | --- |
-| <img src="[[https://github.com/nadya.png](https://www.google.com/search?q=https://github.com/nadya.png](https://avatars.githubusercontent.com/u/238160000?v=4))" width="50" style="border-radius:50%"/> **Nadya Putri Anggina** | `241712040` |
-| <img src="[https://github.com/bernita.png](https://www.google.com/search?q=https://github.com/bernita.png)" width="50" style="border-radius:50%"/> **Bernita Agustien P H** | `241712016` | 
-| <img src="[https://github.com/rima.png](https://www.google.com/search?q=https://github.com/rima.png)" width="50" style="border-radius:50%"/> **Rima Nazwa** | `241712004` |
-| <img src="[https://github.com/anggasana.png](https://www.google.com/search?q=https://github.com/anggasana.png)" width="50" style="border-radius:50%"/> **Anggasana Simanullang** | `241712014` |
-| <img src="[https://github.com/ihsan.png](https://www.google.com/search?q=https://github.com/ihsan.png)" width="50" style="border-radius:50%"/> **M. Ihsan Al Munawar** | `241712007` |
-| <img src="[https://github.com/michael.png](https://www.google.com/search?q=https://github.com/michael.png)" width="50" style="border-radius:50%"/> **Michael Deryl A M M** | `241712042` |
-
----
-
-## 📝 Deskripsi Singkat
-
-**Resto Pro** adalah solusi digital *end-to-end* untuk operasional restoran modern yang mengusung tema **Obsidian Gold Dark Mode** . Aplikasi ini mengintegrasikan sistem autentikasi cerdas untuk mengarahkan pengguna ke dashboard yang sesuai dengan peran mereka (Admin, Chef, Waiter, CS) secara otomatis .
+| Fitur | Deskripsi |
+| :--- | :--- |
+| **Multi-Role Access** | Akses khusus untuk Admin, Manager, Chef, Waiter, dan Customer Service. |
+| **Real-time Kitchen** | Monitor antrean masak yang terbagi antara pesanan baru dan sedang dimasak. |
+| **Smart Booking** | Sistem reservasi meja otomatis dengan validasi kode dan pembayaran DP. |
+| **Interactive Floor Plan** | Visualisasi denah meja (Tersedia, Terisi, Dipesan, atau Kotor). |
+| **Split Bill System** | Mendukung pembayaran per-item (split payment) untuk tamu rombongan. |
+| **Loyalty Program** | Pencatatan poin member berdasarkan nominal belanja untuk *tiering* (Gold, Silver, dsb). |
+| **Business Analytics** | Grafik tren pendapatan 7 hari terakhir dan laporan menu terlaris. |
+| **Attendance System** | Sistem Clock-In/Clock-Out staff untuk keamanan akses menu aplikasi. |
 
 ---
 
-## 🚀 Daftar Fitur pada Aplikasi
+### 🛠️ Stack Teknologi
 
-* 
-**🛡️ Role-Based Ecosystem**: Navigasi dashboard otomatis yang membedakan hak akses Admin, Koki, Pelayan, dan Kasir .
-
-
-* 
-**📊 Business Intelligence**: Grafik analitik pendapatan 7 hari dan monitoring menu terlaris untuk pemilik .
-
-
-* 
-**👨‍🍳 Kitchen Control**: Manajemen antrian masak *real-time* dengan indikator durasi tunggu pesanan .
-
-
-* 
-**🤵 Waiter Station**: Denah meja interaktif untuk memantau meja tersedia, terisi, atau kotor .
-
-
-* 
-**💰 Cashier & Loyalty**: Mendukung multi-metode pembayaran, fitur *Split Bill* per item, dan poin member otomatis .
-
-
-* 
-**📅 Reservation System**: Booking meja dengan sistem Uang Muka (DP) yang terintegrasi dengan laporan keuangan .
-
-
-* 
-**⏰ Smart Attendance**: Keamanan operasional yang mewajibkan staf melakukan *Clock-In* sebelum fitur aplikasi dapat diakses .
-
-
+* **Frontend:** Flutter Framework (Dart)
+* **Backend:** PHP (Native API dengan PDO Security)
+* **Database:** MySQL
+* **Libraries:** * `fl_chart` (Data Visualization)
+    * `intl` (Localization & Currency)
+    * `table_calendar` (Attendance Tracker)
+    * `shared_preferences` (Session Management)
+* **API:** Private REST API dikelola di folder `/resto_api`.
 
 ---
 
-## 🛠️ Stack Technology yang Digunakan
+### 👥 Kontributor Tim
 
-* 
-**Frontend**: Flutter (Dart) dengan arsitektur *Clean UI*.
+Kami adalah tim pengembang di balik RESTO PRO:
 
-
-* 
-**Backend**: PHP 8.2 menggunakan arsitektur RESTful API.
-
-
-* 
-**Database**: MySQL 10.4 (MariaDB) dengan optimasi *Triggers* dan *Stored Procedures* .
-
-
-* **Web Server**: Apache via XAMPP.
-
----
-
-## 📱 Versioning
-
-* **Flutter Version**: `3.x` (Channel Stable).
-* **Android Version**:
-* Minimum SDK: `21` (Android 5.0 Lollipop).
-* Target SDK: `34` (Android 14).
-
-
+<table align="center">
+  <tr>
+    <td align="center"><a href="https://github.com/nayawwaja"><img src="https://github.com/nayawwaja.png?size=100" width="100px;" alt="Nadya"/><br /><sub><b>Nadya Putri A.</b></sub></a><br />241712040</td>
+    <td align="center"><a href="https://github.com/nitagustienpH"><img src="https://github.com/nitagustienpH.png?size=100" width="100px;" alt="Bernita"/><br /><sub><b>Bernita Agustien</b></sub></a><br />241712016</td>
+    <td align="center"><img src="https://ui-avatars.com/api/?name=Rima+Nazwa&background=random&size=100" width="100px;" alt="Rima"/><br /><sub><b>Rima Nazwa</b></sub><br />241712004</td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Anggasana-11"><img src="https://github.com/Anggasana-11.png?size=100" width="100px;" alt="Anggasana"/><br /><sub><b>Anggasana S.</b></sub></a><br />241712014</td>
+    <td align="center"><img src="https://ui-avatars.com/api/?name=Ihsan+Al+Munawar&background=random&size=100" width="100px;" alt="Ihsan"/><br /><sub><b>M. Ihsan Al M.</b></sub><br />241712007</td>
+    <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100" width="100px;" alt="Michael"/><br /><sub><b>Michael Deryl A.</b></sub></a><br />241712042</td>
+  </tr>
+</table>
 
 ---
 
-## 📦 Library / Framework yang Digunakan
+### 💻 Cara Menjalankan Aplikasi
 
-Aplikasi ini memanfaatkan ekosistem library terbaik untuk performa maksimal:
+1.  **Persiapan Database:**
+    * Import file `resto_db.sql` ke dalam MySQL/XAMPP Anda.
+    * Pastikan konfigurasi di `resto_api/config/database.php` sesuai dengan kredensial lokal Anda.
 
-* 
-`fl_chart`: Visualisasi data statistik dan pendapatan.
+2.  **Konfigurasi API:**
+    * Ubah file `lib/config/api_config.dart`.
+    * Ganti IP `10.0.2.2` (untuk emulator) atau `localhost` dengan IP Address komputer Anda jika menggunakan *physical device*.
 
+3.  **Jalankan Flutter:**
+    ```bash
+    flutter pub get
+    flutter run
+    ```
 
-* 
-`intl`: Standarisasi format mata uang Rupiah (IDR) dan tanggal lokal.
-
-
-* 
-`table_calendar`: Kalender interaktif untuk manajemen riwayat kehadiran staf .
-
-
-* 
-`shared_preferences`: Manajemen sesi login, token keamanan, dan status shift .
-
-
-* 
-`http`: Integrasi API backend yang responsif.
-
-
+4.  **Akses Login (Default):**
+    * **Email:** `admin@resto.com`
+    * **Password:** `password`
 
 ---
 
-## 🔌 Public / Private API yang Digunakan
-
-Sistem menggunakan **Private REST API** dengan konfigurasi **Auto-IP Detection** . Fitur ini memungkinkan aplikasi berjalan di Android Emulator maupun Web tanpa perlu mengubah alamat IP secara manual:
-
-```dart
-// lib/config/api_config.dart
-if (!kIsWeb && Platform.isAndroid) {
-    return 'http://10.0.2.2/resto_api/api'; [cite_start]// Otomatis untuk Android Emulator [cite: 3]
-}
-return 'http://localhost/resto_api/api'; [cite_start]// Otomatis untuk Web/iOS/Desktop [cite: 6]
-
-```
-
----
-
-## ⚙️ Cara Menjalankan Aplikasi
-
-### 1. Persiapan Database
-
-1. Buka **phpMyAdmin** di `localhost/phpmyadmin`.
-2. Buat database baru bernama `resto_db`.
-
-
-3. Import file `resto_db.sql` ke dalam database tersebut .
-
-
-
-### 2. Persiapan Backend
-
-1. Pindahkan folder `resto_api` ke direktori `htdocs` (XAMPP).
-2. Pastikan konfigurasi database di `resto_api/config/database.php` sudah sesuai .
-
-
-
-### 3. Persiapan Frontend (VS Code / Android Studio)
-
-1. Buka terminal di folder project dan jalankan:
-```bash
-flutter pub get
-
-```
-
-
-2. **VS Code**: Buka *Command Palette* (`Ctrl+Shift+P`), pilih `Flutter: Select Device`, lalu tekan `F5` untuk *Debug*.
-3. **Android Studio**: Klik tombol `Run` (Segitiga hijau) pada toolbar utama.
-
----
-
-## 🔐 Akun Akses Demo
-
-> **Password semua akun:** `password`
-
-| Peran | Email Login |
-| --- | --- |
-| **Admin** | `admin@resto.com` |
-| **Chef (Koki)** | `chef1@resto.com` |
-| **Waiter (Pelayan)** | `waiter1@resto.com` |
-| **Kasir (CS)** | `kasir1@resto.com` |
-
----
-
-> **Kelompok 4 © 2025** | Dibuat untuk Efisiensi Bisnis Kuliner Anda.
+<p align="center">
+  Built with ❤️ by Team Resto Pro
+</p>
