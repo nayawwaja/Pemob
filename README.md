@@ -93,7 +93,7 @@
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100"/><br><b>Michael</b></a><br>241712042</td>
-    <td align="center"><a href="https://github.com/Anggasana-11"><img src="https://github.com/Anggasana-11.png?size=100"/><br><b>Angga</b></a><br>241712014</td>
+    <td align="center"><a href="https://github.com/Anggasana-11"><img src="https://github.com/Anggasana-11.png?size=50"/><br><b>Angga</b></a><br>241712014</td>
     <td align="center"><img src="https://ui-avatars.com/api/?name=Ihsan+Munawar&background=0A0A0A&color=FFD700&size=100"/><br><b>Ihsan</b><br>241712007</td>
   </tr>
 </table>
