@@ -153,5 +153,5 @@ Password : password
 </p>
 
 <p align="center">
-  <strong>⚡ Built with ❤️ by Team RESTO PRO</strong>
+  <strong>⚡ Built with ☕ and ❤️ by Team RESTO PRO</strong>
 </p>
