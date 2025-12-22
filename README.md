@@ -78,7 +78,7 @@ Kami adalah tim pengembang di balik RESTO PRO:
 
 2.  **Konfigurasi API:**
     * Ubah file `lib/config/api_config.dart`.
-    * Ganti IP `10.0.2.2` (untuk emulator) atau `localhost` dengan IP Address komputer Anda jika menggunakan *physical device*.
+    * Tapi jika anda menggunakan Emulator android studio atau melalui jaringan laptop anda(Localhost) tidak perlu mengganti API.
 
 3.  **Jalankan Flutter:**
     ```bash
@@ -88,6 +88,14 @@ Kami adalah tim pengembang di balik RESTO PRO:
 
 4.  **Akses Login (Default):**
     * **Email:** `admin@resto.com`
+                 `manager@resto.com`
+                 `chef1@resto.com`
+                 `chef2@resto.com`
+                 `waiter1@resto.com`
+                 `waiter2@resto.com`
+                 `waiter3@resto.com`
+                 `kasir1@resto.com`
+                 `kasir2@resto.com`
     * **Password:** `password`
 
 ---
