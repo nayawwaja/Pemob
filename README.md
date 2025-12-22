@@ -117,11 +117,8 @@ Test API:
 
 ```
 cd resto_management
-
 flutter pub get
-
-flutter run
-
+flutter rum
 ```
 
 4️⃣ API IP Configuration
