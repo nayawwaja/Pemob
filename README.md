@@ -1,96 +1,240 @@
-# RESTO PRO
-
-## Tim Pengembang
-
-| Nama | NIM |
-| :--- | :--- |
-| **Nadya Putri Anggina** | 241712040 |
-| **Bernita Agustien P Habeahan** | 241712016 |
-| **Rima Nazwa** | 241712004 |
-| **Anggasana Simanullang** | 241712014 |
-| **Muhammad Ihsan Al Munawar** | 241712007 |
-| **Michael Deryl Aarron Matthew** | 241712042 |
+Berikut adalah file **README.md** yang didesain secara profesional, interaktif, dan modern untuk repositori GitHub Anda. File ini mencakup semua detail teknis dari kode sumber yang Anda berikan, termasuk sistem multi-role, manajemen database, dan integrasi API.
 
 ---
 
-## Deskripsi Singkat Aplikasi
+# 🍽️ RESTO PRO - Ultimate Build v2.0
 
-**RESTO PRO** adalah aplikasi manajemen restoran terintegrasi (Point of Sales & Management System) yang dirancang untuk mendigitalkan operasional bisnis kuliner. Aplikasi ini menghubungkan berbagai peran dalam restoran mulai dari Pelayan (Waiter), Dapur (Chef), Kasir (CS), hingga Manajer dan Pemilik (Admin) dalam satu ekosistem.
+> **Sistem Manajemen Restoran Terintegrasi Berbasis Flutter & PHP**
 
-Aplikasi ini menangani alur kerja lengkap mulai dari reservasi meja, pemesanan menu, manajemen antrian dapur, pembayaran, hingga pelaporan pendapatan dan absensi karyawan secara *real-time*.
-
----
-
-## Daftar Fitur
-
-1.  **Multi-Role Authentication**: Akses berbeda untuk Admin, Manager, Chef, Waiter, dan Customer Service (CS).
-2.  **Dashboard Interaktif**:
-    *   **Admin**: Grafik tren pendapatan, ringkasan pesanan, dan peringatan stok menipis.
-    *   **Staff**: Fitur Clock-In/Clock-Out (Absensi) dan akses menu cepat sesuai peran.
-3.  **Manajemen Pesanan (Ordering)**: Input pesanan pelanggan dan pelacakan status pesanan.
-4.  **Reservasi Meja (Booking)**: Sistem booking meja dengan fitur pembayaran uang muka (DP) dan sinkronisasi status meja otomatis.
-5.  **Kitchen Display System (KDS)**: Layar khusus koki untuk memantau antrian pesanan yang masuk ke dapur.
-6.  **Point of Sales (Kasir)**: Pembayaran tagihan dengan dukungan perhitungan tunai dan non-tunai.
-7.  **Manajemen Menu & Stok**: Pengelolaan daftar menu, harga, dan pemantauan stok bahan baku.
-8.  **Manajemen SDM**: Pengelolaan data karyawan, kode akses registrasi, dan riwayat absensi.
-9.  **Laporan & Analitik**: Laporan penjualan harian/bulanan dan performa restoran.
+**Resto Pro** adalah solusi manajemen restoran *all-in-one* yang menghubungkan operasional dapur, pelayan, kasir, hingga pemilik dalam satu ekosistem digital. Aplikasi ini dirancang untuk meningkatkan efisiensi pelayanan, akurasi pesanan, dan analitik bisnis secara real-time.
 
 ---
 
-## Stack Technology
+## 👥 Kelompok 4 - Kontributor
 
-*   **Mobile Framework**: Flutter (Dart)
-*   **Backend API**: PHP Native
-*   **Database**: MySQL / MariaDB
-*   **Architecture**: MVC (Model-View-Controller) pada Backend, MVVM/Clean Architecture pattern pada Mobile.
+Dibuat dengan ❤️ oleh mahasiswa hebat dari tim kami:
+
+<table align="center">
+<tr>
+<td align="center">
+<a href="[https://github.com/nadya](https://github.com/nadya)">
+<img src="[https://github.com/nadya.png](https://www.google.com/search?q=https://github.com/nadya.png)" width="100px;" alt="Nadya Putri"/><br />
+<sub><b>Nadya Putri Anggina</b></sub>
+</a><br />
+<sub>241712040</sub>
+</td>
+<td align="center">
+<a href="[https://github.com/bernita](https://www.google.com/search?q=https://github.com/bernita)">
+<img src="[https://github.com/bernita.png](https://www.google.com/search?q=https://github.com/bernita.png)" width="100px;" alt="Bernita"/><br />
+<sub><b>Bernita Agustien P H</b></sub>
+</a><br />
+<sub>241712016</sub>
+</td>
+<td align="center">
+<a href="[https://github.com/rima](https://www.google.com/search?q=https://github.com/rima)">
+<img src="[https://github.com/rima.png](https://www.google.com/search?q=https://github.com/rima.png)" width="100px;" alt="Rima"/><br />
+<sub><b>Rima Nazwa</b></sub>
+</a><br />
+<sub>241712004</sub>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="[https://github.com/anggasana](https://www.google.com/search?q=https://github.com/anggasana)">
+<img src="[https://github.com/anggasana.png](https://www.google.com/search?q=https://github.com/anggasana.png)" width="100px;" alt="Anggasana"/><br />
+<sub><b>Anggasana Simanullang</b></sub>
+</a><br />
+<sub>241712014</sub>
+</td>
+<td align="center">
+<a href="[https://github.com/ihsan](https://www.google.com/search?q=https://github.com/ihsan)">
+<img src="[https://github.com/ihsan.png](https://www.google.com/search?q=https://github.com/ihsan.png)" width="100px;" alt="Muhammad Ihsan"/><br />
+<sub><b>Muhammad Ihsan Al Munawar</b></sub>
+</a><br />
+<sub>241712007</sub>
+</td>
+<td align="center">
+<a href="[https://github.com/michael](https://github.com/michael)">
+<img src="[https://github.com/michael.png](https://www.google.com/search?q=https://github.com/michael.png)" width="100px;" alt="Michael"/><br />
+<sub><b>Michael Deryl A M M</b></sub>
+</a><br />
+<sub>241712042</sub>
+</td>
+</tr>
+</table>
 
 ---
 
-## Versi Perangkat Lunak
+## 🚀 Fitur Unggulan
 
-### Flutter Version
-*   **Flutter SDK**: 3.0.0 atau lebih baru (Disarankan versi Stable terbaru 3.x)
-*   **Dart SDK**: 2.17.0 atau lebih baru
+### 🔐 Multi-Role Access Control
 
-### Android Version
-*   **Minimum SDK**: Android 5.0 (API Level 21)
-*   **Target SDK**: Android 13/14 (API Level 33/34)
+Navigasi dashboard otomatis menyesuaikan peran pengguna:
+
+* 
+**Admin/Owner**: Akses penuh ke laporan bisnis, manajemen stok, dan HRD.
+
+
+* 
+**Chef (Dapur)**: Monitor antrian masak secara real-time.
+
+
+* 
+**Waiter (Pelayan)**: Input pesanan pelanggan dan monitor meja kotor.
+
+
+* 
+**Cashier (Kasir)**: Proses pembayaran (Tunai, QRIS, Debit, Transfer) & Split Bill.
+
+
+
+### 📅 Manajemen Meja & Reservasi Pintar
+
+* 
+**Sistem Booking & DP**: Menangani uang muka (Down Payment) untuk reservasi.
+
+
+* 
+**Auto-Cleaning System**: Status meja 'Reserved' otomatis aktif 1 jam sebelum tamu datang.
+
+
+* 
+**QR Check-In**: Verifikasi kedatangan tamu melalui kode booking.
+
+
+
+### 📊 Analitik & Laporan Real-time
+
+* 
+**Grafik Pendapatan**: Visualisasi tren penjualan 7 hari terakhir.
+
+
+* 
+**Menu Terlaris**: Pantau item mana yang memberikan keuntungan maksimal.
+
+
+* 
+**Loyalty Points**: Sistem poin member berdasarkan nominal belanja untuk meningkatkan *customer retention*.
+
+
+
+### ⏰ Sistem Kehadiran (Attendance)
+
+* 
+**Clock In/Out**: Fitur absensi harian staf untuk keamanan akses menu aplikasi.
+
+
+* 
+**Work Duration**: Perhitungan otomatis durasi kerja staf per shift.
+
+
 
 ---
 
-## Library / Framework yang Digunakan
+## 🛠️ Stack Teknologi
 
-Berikut adalah *dependencies* utama yang digunakan dalam proyek Flutter:
+| Komponen | Teknologi |
+| --- | --- |
+| **Frontend** | Flutter 3.x (Dart) |
+| **Backend** | PHP 8.x (RESTful API) |
+| **Database** | MySQL / MariaDB |
+| **Tools** | XAMPP, VS Code, Android Studio |
+| **Design System** | Custom Dark Theme (Elegant Gold & Obsidian) 
 
-*   **`flutter`**: Framework UI utama.
-*   **`http`**: Untuk melakukan request API (GET, POST) ke backend PHP.
-*   **`shared_preferences`**: Untuk penyimpanan data lokal sederhana (sesi login, data user).
-*   **`intl`**: Untuk format tanggal, waktu, dan mata uang (Rupiah).
-*   **`fl_chart`**: Untuk visualisasi data grafik pendapatan pada Dashboard Admin.
+ |
+
+### Library Utama (Flutter)
+
+* 
+`http`: Komunikasi data API.
+
+
+* 
+`fl_chart`: Grafik analitik interaktif.
+
+
+* 
+`intl`: Format mata uang dan tanggal Indonesia.
+
+
+* 
+`shared_preferences`: Manajemen sesi login dan status shift.
+
+
+* 
+`table_calendar`: Kalender riwayat absensi.
+
+
 
 ---
 
-## Public / Private API
+## ⚙️ Cara Menjalankan Aplikasi
 
-Aplikasi ini menggunakan **Private REST API** yang dibangun sendiri menggunakan PHP Native.
-*   **Base URL**: `http://[IP_ADDRESS_SERVER]/resto_api/api/`
-*   **Format Data**: JSON
-*   **Endpoint Utama**: `auth.php`, `staff.php`, `booking.php`, `orders.php`, `dashboard.php`, `attendance.php`.
+### 1. Persiapan Database
+
+1. Buka **phpMyAdmin**.
+2. Buat database baru dengan nama `resto_db`.
+
+
+3. Import file `resto_db.sql` yang tersedia di folder root project.
+
+
+
+### 2. Persiapan API (Backend)
+
+1. Copy folder `resto_api` ke direktori `htdocs` (XAMPP).
+2. Pastikan konfigurasi di `resto_api/config/database.php` sudah sesuai dengan kredensial MySQL Anda.
+
+
+
+### 3. Konfigurasi Flutter
+
+1. Buka file `lib/config/api_config.dart`.
+2. Ganti `baseUrl` dengan alamat IP komputer Anda jika menggunakan HP fisik, atau tetap gunakan `10.0.2.2` untuk Emulator Android.
+
+
+
+```dart
+static String get baseUrl => "http://ALAMAT_IP_ANDA/resto_api/api";
+
+```
+
+### 4. Running
+
+```bash
+flutter pub get
+flutter run
+
+```
 
 ---
 
-## Cara Menjalankan Aplikasi
+## 🔑 Akun Uji Coba (Default)
 
-### 1. Persiapan Backend (Server)
-1.  Pastikan **XAMPP** atau web server sejenis (Apache + MySQL) sudah terinstall.
-2.  Buat database baru di phpMyAdmin dengan nama `resto_db` (atau sesuaikan dengan `config/database.php`).
-3.  Import file SQL database ke dalam `resto_db`.
-4.  Salin folder `resto_api` ke dalam folder `htdocs` pada instalasi XAMPP.
-5.  Pastikan server berjalan dan dapat diakses via browser (Cek IP Address komputer Anda, misal: `192.168.1.x`).
+> 
+> **Password semua akun:** `password` 
+> 
+> 
 
-### 2. Persiapan Aplikasi Mobile (Flutter)
-1.  Buka project Flutter di VS Code atau Android Studio.
-2.  Buka file konfigurasi API (biasanya di `lib/config/api_config.dart` atau `lib/services/api_service.dart`).
-3.  Ubah `baseUrl` agar mengarah ke IP Address komputer server backend (Contoh: `http://192.168.1.10/resto_api/api`). *Jangan gunakan `localhost` jika menjalankan di HP fisik.*
-4.  Jalankan perintah `flutter pub get` di terminal untuk mengunduh library.
-5.  Jalankan aplikasi dengan perintah `flutter run`.
+| Role | Username | Email |
+| --- | --- | --- |
+| **Admin** | `admin` | `admin@resto.com` |
+| **Manager** | `manager` | `manager@resto.com` |
+| **Chef** | `chef1` | `chef1@resto.com` |
+| **Waiter** | `waiter1` | `waiter1@resto.com` |
+| **Cashier** | `kasir1` | `kasir1@resto.com` |
+
+---
+
+## 📄 Lisensi
+
+Project ini berada di bawah lisensi **MIT**. Anda bebas menggunakannya untuk tujuan edukasi.
+
+---
+
+> 
+> **Note:** Aplikasi ini adalah versi **v2.0 Ultimate Build** dengan optimasi keamanan JSON parsing dan sinkronisasi status meja secara *real-time*.
+> 
+> 
+
+Apakah Anda ingin saya menambahkan bagian video demo atau dokumentasi API yang lebih mendalam ke dalam file README ini?
