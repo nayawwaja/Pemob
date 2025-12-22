@@ -103,7 +103,7 @@
 ## 💻 Installation Guide
 
 ```bash
-git clone https://github.com/USERNAME/REPO.git
+git clone https://github.com/USERNAME/REPO](https://github.com/nayawwaja/Pemob.git
 cd resto_management
 flutter pub get
 flutter run
