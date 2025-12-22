@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 22, 2025 at 01:19 AM
+-- Generation Time: Dec 22, 2025 at 02:34 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -134,7 +134,62 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `description`, `ip_addre
 (30, 1, NULL, 'Booking RES-4307 dibuat. DP: Rp 120,000', NULL, NULL, NULL, '2025-12-21 22:53:15', 'CREATE_BOOKING'),
 (31, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:10:06', 'LOGIN'),
 (34, 1, NULL, 'Booking RES-8725 dibuat. DP: Rp 100,000 (Belum Lunas)', NULL, NULL, NULL, '2025-12-22 00:11:11', 'CREATE_BOOKING'),
-(35, 8, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:12:19', 'LOGIN');
+(35, 8, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:12:19', 'LOGIN'),
+(36, 8, NULL, 'Staff memulai shift kerja', NULL, NULL, NULL, '2025-12-22 00:26:01', 'CLOCK_IN'),
+(37, 8, NULL, 'Staff mengakhiri shift kerja', NULL, NULL, NULL, '2025-12-22 00:26:07', 'CLOCK_OUT'),
+(38, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:26:33', 'LOGIN'),
+(39, 2, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:27:30', 'LOGIN'),
+(40, 2, NULL, 'Staff memulai shift kerja', NULL, NULL, NULL, '2025-12-22 00:27:33', 'CLOCK_IN'),
+(41, 2, NULL, 'Staff mengakhiri shift kerja', NULL, NULL, NULL, '2025-12-22 00:28:03', 'CLOCK_OUT'),
+(42, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:34:14', 'LOGIN'),
+(43, 1, NULL, 'Booking RES-1326 dibuat. DP: Rp 0 (Belum Lunas)', NULL, NULL, NULL, '2025-12-22 00:34:33', 'CREATE_BOOKING'),
+(44, 1, NULL, 'Booking RES-3992 dibuat. DP: Rp 0 (Belum Lunas)', NULL, NULL, NULL, '2025-12-22 00:35:03', 'CREATE_BOOKING'),
+(45, 1, NULL, 'Ubah status meja ID 3 jadi available', NULL, NULL, NULL, '2025-12-22 00:46:02', 'UPDATE_TABLE'),
+(46, 1, NULL, 'Ubah status meja ID 10 jadi available', NULL, NULL, NULL, '2025-12-22 00:46:03', 'UPDATE_TABLE'),
+(47, 1, NULL, 'Ubah status meja ID 15 jadi available', NULL, NULL, NULL, '2025-12-22 00:46:07', 'UPDATE_TABLE'),
+(48, 1, NULL, 'Ubah status meja ID 4 jadi available', NULL, NULL, NULL, '2025-12-22 00:46:08', 'UPDATE_TABLE'),
+(49, 1, NULL, 'Ubah status meja ID 5 jadi available', NULL, NULL, NULL, '2025-12-22 00:46:09', 'UPDATE_TABLE'),
+(50, 6, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 01:21:47', 'LOGIN'),
+(51, 6, NULL, 'Staff memulai shift kerja', NULL, NULL, NULL, '2025-12-22 01:21:51', 'CLOCK_IN'),
+(52, 6, NULL, 'Staff mengakhiri shift kerja', NULL, NULL, NULL, '2025-12-22 01:22:05', 'CLOCK_OUT'),
+(53, 6, NULL, 'Staff memulai shift kerja', NULL, NULL, NULL, '2025-12-22 01:22:09', 'CLOCK_IN'),
+(54, 6, NULL, 'Staff mengakhiri shift kerja', NULL, NULL, NULL, '2025-12-22 01:22:19', 'CLOCK_OUT'),
+(55, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 01:22:45', 'LOGIN'),
+(56, 6, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 01:23:53', 'LOGIN'),
+(57, 6, NULL, 'Staff memulai shift kerja', NULL, NULL, NULL, '2025-12-22 01:23:55', 'CLOCK_IN'),
+(58, 6, NULL, 'Staff mengakhiri shift kerja', NULL, NULL, NULL, '2025-12-22 01:26:48', 'CLOCK_OUT'),
+(59, 6, NULL, 'Staff memulai shift kerja', NULL, NULL, NULL, '2025-12-22 01:26:51', 'CLOCK_IN'),
+(60, 6, NULL, 'Staff mengakhiri shift kerja', NULL, NULL, NULL, '2025-12-22 01:30:22', 'CLOCK_OUT');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `attendance`
+--
+
+CREATE TABLE `attendance` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `clock_in` datetime NOT NULL,
+  `clock_out` datetime DEFAULT NULL,
+  `duration_minutes` int(11) DEFAULT NULL,
+  `status` enum('present','late','absent','leave','sick') DEFAULT 'present',
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `user_id`, `clock_in`, `clock_out`, `duration_minutes`, `status`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 8, '2025-12-22 07:26:01', '2025-12-22 07:26:07', 0, 'present', NULL, '2025-12-22 00:26:01', '2025-12-22 00:26:07'),
+(2, 2, '2025-12-22 07:27:33', '2025-12-22 07:28:03', 0, 'present', NULL, '2025-12-22 00:27:33', '2025-12-22 00:28:03'),
+(3, 6, '2025-12-22 08:21:51', '2025-12-22 08:22:05', 0, 'present', NULL, '2025-12-22 01:21:51', '2025-12-22 01:22:05'),
+(4, 6, '2025-12-22 08:22:09', '2025-12-22 08:22:19', 0, 'present', NULL, '2025-12-22 01:22:09', '2025-12-22 01:22:19'),
+(5, 6, '2025-12-22 08:23:55', '2025-12-22 08:26:48', 2, 'present', NULL, '2025-12-22 01:23:55', '2025-12-22 01:26:48'),
+(6, 6, '2025-12-22 08:26:51', '2025-12-22 08:30:22', 3, 'present', NULL, '2025-12-22 01:26:51', '2025-12-22 01:30:22');
 
 -- --------------------------------------------------------
 
@@ -158,6 +213,7 @@ CREATE TABLE `bookings` (
   `status` enum('pending','confirmed','checked_in','completed','cancelled','no_show') DEFAULT 'pending',
   `special_request` text DEFAULT NULL,
   `confirmed_by` int(11) DEFAULT NULL,
+  `dp_order_id` int(11) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -169,10 +225,12 @@ CREATE TABLE `bookings` (
 -- Dumping data for table `bookings`
 --
 
-INSERT INTO `bookings` (`id`, `table_id`, `customer_id`, `customer_name`, `customer_phone`, `customer_email`, `booking_code`, `booking_date`, `booking_time`, `duration`, `guest_count`, `down_payment`, `status`, `special_request`, `confirmed_by`, `notes`, `created_at`, `updated_at`, `dp_paid`, `check_in_time`) VALUES
-(1, 9, NULL, '123', '123', NULL, 'RES-2274', '2025-12-22', '05:13:00', 120, 2, 123.00, 'cancelled', NULL, NULL, ' [Auto-Cancel by System]', '2025-12-21 22:13:52', '2025-12-22 00:10:25', 0, NULL),
-(2, 16, NULL, 'ad', 'ad', NULL, 'RES-4307', '2025-12-22', '05:53:00', 120, 2, 120000.00, 'cancelled', NULL, NULL, ' [Auto-Cancel by System]', '2025-12-21 22:53:15', '2025-12-22 00:10:25', 0, NULL),
-(3, 15, NULL, '1', '123', NULL, 'RES-8725', '2025-12-22', '07:10:00', 120, 9, 100000.00, 'confirmed', NULL, 9, '', '2025-12-22 00:11:11', '2025-12-22 00:11:11', 1, NULL);
+INSERT INTO `bookings` (`id`, `table_id`, `customer_id`, `customer_name`, `customer_phone`, `customer_email`, `booking_code`, `booking_date`, `booking_time`, `duration`, `guest_count`, `down_payment`, `status`, `special_request`, `confirmed_by`, `dp_order_id`, `notes`, `created_at`, `updated_at`, `dp_paid`, `check_in_time`) VALUES
+(1, 9, NULL, '123', '123', NULL, 'RES-2274', '2025-12-22', '05:13:00', 120, 2, 123.00, 'cancelled', NULL, NULL, NULL, ' [Auto-Cancel by System]', '2025-12-21 22:13:52', '2025-12-22 00:10:25', 0, NULL),
+(2, 16, NULL, 'ad', 'ad', NULL, 'RES-4307', '2025-12-22', '05:53:00', 120, 2, 120000.00, 'cancelled', NULL, NULL, NULL, ' [Auto-Cancel by System]', '2025-12-21 22:53:15', '2025-12-22 00:10:25', 0, NULL),
+(3, 15, NULL, '1', '123', NULL, 'RES-8725', '2025-12-22', '07:10:00', 120, 9, 100000.00, 'confirmed', NULL, NULL, 9, '', '2025-12-22 00:11:11', '2025-12-22 00:48:53', 1, NULL),
+(4, 10, NULL, '2', '1', NULL, 'RES-1326', '2025-12-22', '07:34:00', 120, 2, 0.00, 'confirmed', NULL, NULL, NULL, '', '2025-12-22 00:34:33', '2025-12-22 00:34:33', 1, NULL),
+(5, 3, NULL, 'ada', 'ada', NULL, 'RES-3992', '2025-12-22', '09:34:00', 120, 2, 0.00, 'confirmed', NULL, NULL, NULL, '', '2025-12-22 00:35:03', '2025-12-22 00:35:03', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -616,23 +674,23 @@ CREATE TABLE `tables` (
 --
 
 INSERT INTO `tables` (`id`, `table_number`, `capacity`, `location`, `status`, `current_order_id`, `qr_code`, `is_active`, `created_at`, `updated_at`, `min_dp`) VALUES
-(1, 'A1', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(2, 'A2', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(3, 'A3', 4, 'indoor', 'occupied', 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(4, 'A4', 4, 'indoor', 'dirty', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:51:05', 0.00),
-(5, 'A5', 4, 'indoor', 'dirty', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:50:55', 0.00),
-(6, 'B1', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(7, 'B2', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:29:24', 0.00),
-(8, 'B3', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(9, 'B4', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(10, 'B5', 8, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(11, 'C1', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
-(12, 'C2', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
-(13, 'C3', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
-(14, 'C4', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
-(15, 'V1', 8, 'vip', 'reserved', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:11:11', 100000.00),
-(16, 'V2', 10, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00),
-(17, 'V3', 12, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00);
+(1, 'A1', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 25000.00),
+(2, 'A2', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 25000.00),
+(3, 'A3', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:46:02', 25000.00),
+(4, 'A4', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:46:08', 25000.00),
+(5, 'A5', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:46:09', 25000.00),
+(6, 'B1', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 25000.00),
+(7, 'B2', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 25000.00),
+(8, 'B3', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 25000.00),
+(9, 'B4', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 25000.00),
+(10, 'B5', 8, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:46:03', 25000.00),
+(11, 'C1', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 75000.00),
+(12, 'C2', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 75000.00),
+(13, 'C3', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 75000.00),
+(14, 'C4', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 75000.00),
+(15, 'V1', 8, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:46:07', 150000.00),
+(16, 'V2', 10, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 150000.00),
+(17, 'V3', 12, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:43:33', 150000.00);
 
 -- --------------------------------------------------------
 
@@ -761,6 +819,15 @@ ALTER TABLE `activity_logs`
   ADD KEY `idx_created_at` (`created_at`);
 
 --
+-- Indexes for table `attendance`
+--
+ALTER TABLE `attendance`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_clock_in` (`clock_in`),
+  ADD KEY `idx_status` (`status`);
+
+--
 -- Indexes for table `bookings`
 --
 ALTER TABLE `bookings`
@@ -772,7 +839,8 @@ ALTER TABLE `bookings`
   ADD KEY `idx_table_date_status` (`table_id`,`booking_date`,`status`),
   ADD KEY `fk_booking_customer` (`customer_id`),
   ADD KEY `fk_booking_confirmer` (`confirmed_by`),
-  ADD KEY `idx_bookings_table_date` (`table_id`,`booking_date`,`status`);
+  ADD KEY `idx_bookings_table_date` (`table_id`,`booking_date`,`status`),
+  ADD KEY `fk_booking_dp_order` (`dp_order_id`);
 
 --
 -- Indexes for table `booking_payments`
@@ -920,13 +988,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+
+--
+-- AUTO_INCREMENT for table `attendance`
+--
+ALTER TABLE `attendance`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `booking_payments`
@@ -968,7 +1042,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `order_items`
@@ -1017,11 +1091,18 @@ ALTER TABLE `activity_logs`
   ADD CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
+-- Constraints for table `attendance`
+--
+ALTER TABLE `attendance`
+  ADD CONSTRAINT `fk_attendance_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `bookings`
 --
 ALTER TABLE `bookings`
   ADD CONSTRAINT `fk_booking_confirmer` FOREIGN KEY (`confirmed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_booking_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_booking_dp_order` FOREIGN KEY (`dp_order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_booking_table` FOREIGN KEY (`table_id`) REFERENCES `tables` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
