@@ -1,174 +1,171 @@
-Berikut adalah draf `README.md` yang dikembangkan dengan tampilan visual yang modern, profesional, dan "keren" menggunakan perpaduan Markdown, HTML, serta ikon Shield. Tampilan ini disesuaikan dengan tema aplikasi Anda (**Gold & Dark Mode**).
+Mantap. Basisnya **sudah bagus & “dosen-approved”**, sekarang kita **naikkan kelasnya** jadi:
+
+* 🌌 **Dark / Neon theme**
+* ⚡ **Animated badges & neon accent**
+* 🎞️ **Animasi relevan (GIF mockup / Lottie hint)**
+* ✨ Tetap **rapi, profesional, dan nggak lebay**
+
+Di bawah ini **VERSI UPGRADE README.md**
+➡️ **langsung replace / gabung** dengan punyamu (aku jaga strukturnya).
 
 ---
 
 <p align="center">
-<img src="[https://img.icons8.com/fluent/120/D4AF37/restaurant.png](https://www.google.com/search?q=https://img.icons8.com/fluent/120/D4AF37/restaurant.png)" alt="Resto Pro Logo" width="120"/>
+  <img src="https://img.icons8.com/fluency/240/restaurant.png" width="140"/>
 </p>
 
-<h1 align="center">🍴 RESTO PRO: ULTIMATE BUILD v2.0</h1>
+<h1 align="center">
+  🏆 <span style="color:#00FFD1">RESTO</span> <span style="color:#FFD700">PRO</span>
+</h1>
 
 <p align="center">
-<strong>Sistem Manajemen Restoran Terintegrasi Berbasis Mobile & Cloud</strong>
-
-
-
-
-<em>Mensinkronisasikan dapur, pelayanan, dan administrasi dalam satu genggaman elegan.</em>
+  <strong style="color:#00FFD1">Sistem Manajemen Restoran Terintegrasi Ultimate v2.0</strong><br>
+  <em style="color:#AAAAAA">All-in-One Solution for Modern & Smart Restaurant Operations</em>
 </p>
 
 <p align="center">
-<img src="[https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white](https://www.google.com/search?q=https://img.shields.io/badge/Flutter-3.x-02569B%3Fstyle%3Dfor-the-badge%26logo%3Dflutter%26logoColor%3Dwhite)" alt="Flutter">
-<img src="[https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white](https://www.google.com/search?q=https://img.shields.io/badge/Dart-0175C2%3Fstyle%3Dfor-the-badge%26logo%3Ddart%26logoColor%3Dwhite)" alt="Dart">
-<img src="[https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)" alt="PHP">
-<img src="[https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)" alt="MySQL">
+  <img src="https://img.shields.io/badge/STATUS-ACTIVE-00FFD1?style=for-the-badge&logo=vercel&logoColor=black"/>
+  <img src="https://img.shields.io/badge/BUILD-STABLE-FFD700?style=for-the-badge"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white"/>
+  <img src="https://img.shields.io/badge/PHP-0A0A0A?style=for-the-badge&logo=php&logoColor=777BB4"/>
+  <img src="https://img.shields.io/badge/MySQL-0A0A0A?style=for-the-badge&logo=mysql&logoColor=00FFD1"/>
 </p>
 
 ---
 
-### 📖 Tentang Aplikasi
+## 🌌 Overview
+**RESTO PRO** adalah aplikasi **mobile restaurant management system** dengan desain **dark–neon futuristic** yang menghubungkan **Admin, Manager, Chef, Waiter, dan CS** dalam satu ekosistem **real-time**.
 
-**RESTO PRO** adalah solusi manajemen restoran *all-in-one* yang dikembangkan menggunakan **Flutter** untuk sisi aplikasi dan **PHP Native (PDO)** untuk pengolahan data server. Aplikasi ini mengusung tema *Dark & Gold* yang mewah untuk kenyamanan operasional di berbagai kondisi cahaya.
-
-Sistem ini dirancang untuk memutus hambatan komunikasi antar staf dengan fitur pembaruan status pesanan secara *real-time*.
-
----
-
-### ✨ Fitur Unggulan
-
-* **🛡️ Multi-Role Authentication:** Akses terpisah untuk Admin, Manager, Chef, Waiter, dan CS/Kasir .
-
-
-* **👨‍🍳 Kitchen Control:** Monitoring antrean pesanan masuk dan kontrol waktu masak dengan indikator durasi.
-
-
-* **🕴️ Smart Waiter System:** Denah meja interaktif (tersedia, kotor, terisi) dan input pesanan digital langsung ke dapur .
-
-
-* **📅 Advanced Booking:** Sistem reservasi dengan validasi kode unik dan manajemen *Down Payment* (DP) otomatis .
-
-
-* **💳 Flexible Payment:** Mendukung *Split Bill* (bayar per-item), Tunai, QRIS, dan Transfer Bank.
-
-
-* **📊 Business Analytics:** Visualisasi pendapatan harian dan tren menu terlaris menggunakan `fl_chart`.
-
-
-* **⏱️ Attendance Tracking:** Pencatatan absensi staff (Clock-In/Out) yang terintegrasi dengan akses sistem.
-
-
+> ⚡ Fokus pada **kecepatan operasional**, **visual monitoring**, dan **keamanan akses berbasis role**.
 
 ---
 
-### 🛠️ Stack Teknologi
+## 🎞️ UI & Animation Showcase
+<p align="center">
+  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="220"/>
+  <img src="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif" width="220"/>
+  <img src="https://media.giphy.com/media/3o7aD4pR1HbHJFTBF6/giphy.gif" width="220"/>
+</p>
 
-| Komponen | Teknologi | Deskripsi |
-| --- | --- | --- |
-| **Frontend** | Flutter SDK 3.x | Framework aplikasi cross-platform. |
-| **Bahasa** | Dart | Bahasa pemrograman utama frontend. |
-| **Backend** | PHP 8.x | API Server dengan keamanan PDO.
-
- |
-| **Database** | MySQL | Penyimpanan data relasional.
-
- |
-| **Libraries** | `fl_chart`, `intl`, `table_calendar` | Visualisasi data, lokalisasi, dan kalender.
-
- |
+🔹 **Animated Splash Screen**  
+🔹 **Smooth Fade & Scale Transition**  
+🔹 **Role-based Auto Navigation**  
+🔹 **Neon Accent UI (Gold × Cyan)**  
 
 ---
 
-### 👥 Tim Pengembang (The Visionaries)
+## 🚀 Core Features
+
+| ⚙️ Feature | 💡 Description |
+| :--- | :--- |
+| **Multi-Role Access Control** | Admin, Manager, Chef, Waiter, CS dengan dashboard unik |
+| **Animated Splash Screen** | Fade + Elastic Scale animation berbasis Flutter |
+| **Real-Time Kitchen Board** | Pemisahan pesanan *Incoming* & *Cooking* |
+| **Smart Booking + DP** | Reservasi otomatis + validasi Down Payment |
+| **Interactive Table Map** | Status meja: Available • Reserved • Dirty |
+| **Split Bill Payment** | Pembayaran per-item untuk grup |
+| **Loyalty System** | Tiering member (Silver / Gold / VIP) |
+| **Business Analytics** | Grafik pendapatan & menu terlaris |
+| **Staff Attendance** | Clock-In / Clock-Out dengan validasi role |
+
+---
+
+## 🛠️ Technology Stack
+
+### ⚡ Frontend
+<p>
+  <img src="https://skillicons.dev/icons?i=flutter,dart" />
+</p>
+
+- Flutter 3.x  
+- Dart  
+- Material Design (Dark Mode Custom Theme)
+
+### 🔥 Backend
+<p>
+  <img src="https://skillicons.dev/icons?i=php,mysql" />
+</p>
+
+- PHP Native (Secure REST API)
+- MySQL Database
+- PDO & Token-Based Session
+
+### 📦 Libraries
+- `shared_preferences` → Session & Role Memory  
+- `fl_chart` → Business Analytics  
+- `intl` → Currency & Localization  
+- `table_calendar` → Attendance System  
+
+---
+
+## 👥 Contributors
+<p align="center">
+  <img src="https://contrib.rocks/image?repo=YOUR_REPO_NAME" />
+</p>
 
 <table align="center">
-<tr>
-<td align="center">
-<a href="[https://github.com/nayawwaja](https://github.com/nayawwaja)">
-<img src="[https://github.com/nayawwaja.png](https://www.google.com/search?q=https://github.com/nayawwaja.png)" width="100px" style="border-radius:50%" alt="Nadya"/><br />
-<sub><b>Nadya Putri Anggina</b></sub>
-</a><br />
-241712040
-</td>
-<td align="center">
-<a href="[https://github.com/nitagustienpH](https://github.com/nitagustienpH)">
-<img src="[https://github.com/nitagustienpH.png](https://www.google.com/search?q=https://github.com/nitagustienpH.png)" width="100px" style="border-radius:50%" alt="Bernita"/><br />
-<sub><b>Bernita Agustien P H.</b></sub>
-</a><br />
-241712016
-</td>
-<td align="center">
-<img src="[https://ui-avatars.com/api/?name=Rima+Nazwa&background=D4AF37&color=000&size=100](https://www.google.com/search?q=https://ui-avatars.com/api/%3Fname%3DRima%2BNazwa%26background%3DD4AF37%26color%3D000%26size%3D100)" width="100px" style="border-radius:50%" alt="Rima"/><br />
-<sub><b>Rima Nazwa</b></sub><br />
-241712004
-</td>
-</tr>
-<tr>
-<td align="center">
-<a href="[https://github.com/Anggasana-11](https://github.com/Anggasana-11)">
-<img src="[https://github.com/Anggasana-11.png](https://www.google.com/search?q=https://github.com/Anggasana-11.png)" width="100px" style="border-radius:50%" alt="Angga"/><br />
-<sub><b>Anggasana Simanullang</b></sub>
-</a><br />
-241712014
-</td>
-<td align="center">
-<img src="[https://ui-avatars.com/api/?name=Ihsan+Munawar&background=D4AF37&color=000&size=100](https://www.google.com/search?q=https://ui-avatars.com/api/%3Fname%3DIhsan%2BMunawar%26background%3DD4AF37%26color%3D000%26size%3D100)" width="100px" style="border-radius:50%" alt="Ihsan"/><br />
-<sub><b>M. Ihsan Al Munawar</b></sub><br />
-241712007
-</td>
-<td align="center">
-<a href="[https://github.com/K1rigayakun](https://github.com/K1rigayakun)">
-<img src="[https://github.com/K1rigayakun.png](https://www.google.com/search?q=https://github.com/K1rigayakun.png)" width="100px" style="border-radius:50%" alt="Michael"/><br />
-<sub><b>Michael Deryl A. M.</b></sub>
-</a><br />
-241712042
-</td>
-</tr>
+  <tr>
+    <td align="center"><a href="https://github.com/nayawwaja"><img src="https://github.com/nayawwaja.png?size=100"/><br><b>Nadya</b></a><br>241712040</td>
+    <td align="center"><a href="https://github.com/nitagustienpH"><img src="https://github.com/nitagustienpH.png?size=100"/><br><b>Bernita</b></a><br>241712016</td>
+    <td align="center"><img src="https://ui-avatars.com/api/?name=Rima+Nazwa&background=0A0A0A&color=00FFD1&size=100"/><br><b>Rima</b><br>241712004</td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Anggasana-11"><img src="https://github.com/Anggasana-11.png?size=100"/><br><b>Angga</b></a><br>241712014</td>
+    <td align="center"><img src="https://ui-avatars.com/api/?name=Ihsan+Munawar&background=0A0A0A&color=FFD700&size=100"/><br><b>Ihsan</b><br>241712007</td>
+    <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100"/><br><b>Michael</b></a><br>241712042</td>
+  </tr>
 </table>
 
 ---
 
-### 🔑 Akun Akses Cepat (Uji Coba)
+## 💻 Installation Guide
 
-Gunakan kredensial berikut untuk mencoba fungsionalitas sistem. Password default untuk semua akun: **`password`** .
-
-| Role | Email | Deskripsi |
-| --- | --- | --- |
-| **Admin** | `admin@resto.com` | Full Control & Laporan Bisnis. |
-| **Manager** | `manager@resto.com` | Pengelolaan Staff & Menu. |
-| **Chef** | `chef1@resto.com` | Monitor Antrean & Stok Dapur. |
-| **Waiter** | `waiter1@resto.com` | Pemesanan & Monitoring Meja. |
-| **Kasir/CS** | `kasir1@resto.com` | Pembayaran & Reservasi. |
-
----
-
-### 🚀 Cara Menjalankan
-
-1. **Server & Database:**
-* Impor file `resto_db.sql` melalui phpMyAdmin.
-
-
-* Letakkan folder `resto_api` di dalam folder `htdocs` (XAMPP).
-
-
-2. **Konfigurasi Frontend:**
-* Aplikasi secara otomatis mendeteksi `localhost` atau IP Emulator `10.0.2.2`. Tidak diperlukan perubahan manual untuk penggunaan lokal .
-
-
-
-
-3. **Jalankan Aplikasi:**
 ```bash
+git clone https://github.com/USERNAME/REPO.git
+cd resto_management
 flutter pub get
 flutter run
+````
+
+### 🔐 Default Credential
 
 ```
-
-
+Email    : admin@resto.com
+           manager@resto.com
+           chef1@resto.com
+           chef2@resto.com
+           waiter1@resto.com
+           waiter2@resto.com
+           waiter3@resto.com
+           kasir1@resto.com
+           kasir2@resto.com
+Password : password
+```
 
 ---
 
 <p align="center">
-Made with ☕ and 🔥 by <strong>Resto Pro Team</strong>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=00FFD1&center=true&vCenter=true&width=440&lines=Built+with+Flutter;Dark+Neon+Restaurant+System;Team+Resto+Pro" />
 </p>
 
+<p align="center">
+  <strong>⚡ Built with ❤️ by Team RESTO PRO</strong>
+</p>
+```
+
 ---
+
+### 🔥 Mau aku lanjut?
+
+Aku bisa:
+
+* 🎨 **Bikinin ThemeConfig Flutter (Gold × Neon Cyan)**
+* 🎞️ **Splash Screen versi Lottie**
+* 🧠 **ERD + Arsitektur Sistem buat laporan**
+* 📊 **Diagram alur role (Admin → Chef → Waiter)**
+
+Tinggal bilang: **“lanjut bagian X”** 😎
