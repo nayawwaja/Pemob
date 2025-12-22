@@ -29,7 +29,7 @@
 ---
 
 ## 🌌 Overview
-**RESTO PRO** adalah aplikasi **mobile restaurant management system** dengan desain **dark–neon futuristic** yang menghubungkan **Admin, Manager, Chef, Waiter, dan CS** dalam satu ekosistem **real-time**.
+**RESTO PRO** adalah aplikasi **mobile restaurant management system** dengan desain minimalis yang menghubungkan **Admin, Manager, Chef, Waiter, dan CS** dalam satu ekosistem **real-time**.
 
 > ⚡ Fokus pada **kecepatan operasional**, **visual monitoring**, dan **keamanan akses berbasis role**.
 
