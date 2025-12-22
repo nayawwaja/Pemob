@@ -127,7 +127,7 @@ Password : password
 ---
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=00FFD1&center=true&vCenter=true&width=440&lines=Built+with+Flutter;Terimakasih+Atas+Kerjasamanta;Team+Resto+Pro" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=00FFD1&center=true&vCenter=true&width=440&lines=Built+with+Flutter;Terimakasih+Atas+Kerjasamanya;Team+Resto+Pro" />
 </p>
 
 <p align="center">
