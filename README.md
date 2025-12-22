@@ -78,3 +78,87 @@ Aplikasi ini cocok digunakan untuk:
 
 ```bash
 git clone https://github.com/USERNAME/REPO_NAME.git
+```
+
+### 2️⃣ Masuk Folder Project
+
+```bash
+cd resto_management
+```
+
+### 3️⃣ Install Dependency
+
+```bash
+flutter pub get
+```
+
+### 4️⃣ Jalankan Aplikasi
+
+```bash
+flutter run
+```
+
+---
+
+## 🔑 Informasi Login
+
+```
+Password Default : password
+```
+
+---
+
+## 👨‍💻 Tim Pengembang
+
+<p align="center">
+
+<a href="https://github.com/nayawwaja">
+  <img src="https://github.com/nayawwaja.png" width="90" /><br/>
+  <b>Nadya Putri Anggina</b><br/>
+  <sub>241712040</sub>
+</a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="https://github.com/nitagustienpH">
+  <img src="https://github.com/nitagustienpH.png" width="90" /><br/>
+  <b>Bernita Agustien P</b><br/>
+  <sub>241712016</sub>
+</a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="https://github.com/Anggasana-11">
+  <img src="https://github.com/Anggasana-11.png" width="90" /><br/>
+  <b>Anggasana Simanullang</b><br/>
+  <sub>241712014</sub>
+</a>
+
+<br/><br/>
+
+<a href="#">
+  <img src="https://avatars.githubusercontent.com/u/0?v=4" width="90" /><br/>
+  <b>Rima Nazwa</b><br/>
+  <sub>241712004</sub>
+</a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="#">
+  <img src="https://avatars.githubusercontent.com/u/0?v=4" width="90" /><br/>
+  <b>Muhammad Ihsan A.M</b><br/>
+  <sub>241712007</sub>
+</a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="https://github.com/K1rigayakun">
+  <img src="https://github.com/K1rigayakun.png" width="90" /><br/>
+  <b>Michael Deryl A.M</b><br/>
+  <sub>241712042</sub>
+</a>
+
+</p>
+
+---
+
+## 📄 Lisensi
+
+Project ini dibuat untuk keperluan **akademik dan pembelajaran**.
+
