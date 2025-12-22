@@ -10,6 +10,7 @@ import '../order/order_list_screen.dart';
 import '../booking/booking_screen.dart';
 import '../payment/payment_screen.dart';
 import '../analytics/analytics_screen.dart';
+import '../analytics/attendance_screen.dart'; // NEW: Import attendance screen
 import '../manage_menu/manage_menu_screen.dart';
 import '../staff/staff_management_screen.dart';
 import '../kitchen_screen.dart';
@@ -623,6 +624,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
         'color': Colors.purple,
         'page': const AnalyticsScreen(),
       },
+      // ============ NEW: RIWAYAT ABSENSI ============
+      {
+        'title': 'Riwayat Absensi',
+        'subtitle': 'Kehadiran Staf',
+        'icon': Icons.fingerprint,
+        'color': Colors.cyan,
+        'page': const AttendanceScreen(),
+      },
+      // =============================================
       {
         'title': 'Monitor Dapur',
         'subtitle': 'Antrian Masak',

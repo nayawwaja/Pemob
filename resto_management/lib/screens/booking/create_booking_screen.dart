@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_service.dart';
+import '../payment/payment_screen.dart';
 
 class CreateBookingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> tables;
@@ -33,7 +34,6 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
   bool _isLoading = false;
   int _userId = 0;
 
-  // Helper: Min DP Table
   double _minDp = 0;
 
   @override
@@ -126,8 +126,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
 
     if (dpAmount < _minDp) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-            "DP Kurang! Minimum untuk meja ini: Rp ${_formatNumber(_minDp)}"),
+        content: Text("DP Kurang! Minimum: Rp ${_formatNumber(_minDp)}"),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 3),
       ));
@@ -137,8 +136,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
     setState(() => _isLoading = true);
 
     String dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    String timeStr =
-        "${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}:00";
+    String timeStr = "${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}:00";
 
     try {
       final res = await ApiService.post('booking.php?action=create_booking', {
@@ -155,11 +153,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
 
       if (res['success'] == true) {
         if (mounted) {
-          _showSuccessDialog(
-            res['data']['booking_code'] ?? 'N/A',
-            dpAmount,
-            res['data']['payment_status'] ?? 'partial',
-          );
+          _showSuccessDialog(res['data'] ?? {}, dpAmount);
         }
       } else {
         if (mounted) {
@@ -176,136 +170,162 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
     }
   }
 
-  void _showSuccessDialog(String code, double dpAmount, String paymentStatus) {
+  void _showSuccessDialog(Map<String, dynamic> bookingData, double dpAmount) {
+    String code = bookingData['booking_code'] ?? 'N/A';
+    String tableNumber = bookingData['table_number'] ?? _selectedTable?['table_number'] ?? '';
+    String customerName = bookingData['customer_name'] ?? _nameController.text;
+    String bookingDate = bookingData['booking_date'] ?? DateFormat('yyyy-MM-dd').format(_selectedDate);
+    String bookingTime = bookingData['booking_time'] ?? "${_selectedTime.hour.toString().padLeft(2,'0')}:${_selectedTime.minute.toString().padLeft(2,'0')}";
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2A2A2A),
         title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 28),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text('Booking Berhasil!',
-                  style: TextStyle(color: Color(0xFFD4AF37))),
-            ),
+          children: const [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 10),
+            Expanded(child: Text('Booking Berhasil!', style: TextStyle(color: Color(0xFFD4AF37)))),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Booking Code
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFD4AF37)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Booking Code
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFD4AF37)),
+                ),
+                child: Column(
+                  children: [
+                    const Text("Kode Booking", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    const SizedBox(height: 4),
+                    Text(code, style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  ],
+                ),
               ),
-              child: Column(
-                children: [
-                  const Text("Kode Booking",
-                      style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  const SizedBox(height: 4),
-                  Text(code,
-                      style: const TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-            // Payment Status - UPDATED to show PARTIAL
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withOpacity(0.5)),
+              // Booking Info
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
+                child: Column(
+                  children: [
+                    _buildInfoRow(Icons.person, customerName),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.table_restaurant, "Meja $tableNumber"),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.calendar_today, bookingDate),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.access_time, bookingTime),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "STATUS: DP DITERIMA",
-                          style: TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12),
-                        ),
-                        Text(
-                          "Rp ${_formatNumber(dpAmount)}",
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16),
-                        ),
-                      ],
+              const SizedBox(height: 12),
+
+              // Payment Status
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("DP DITERIMA", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text("Rp ${_formatNumber(dpAmount)}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Important Notice
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+              // Warning
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  children: const [
+                    Icon(Icons.timer, color: Colors.orange, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Tamu harus check-in dalam 10 MENIT dari waktu booking, atau meja otomatis dikosongkan.",
+                        style: TextStyle(color: Colors.orange, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    "⚠️ PENTING:",
-                    style: TextStyle(
-                        color: Colors.blueAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    "• Pembayaran BELUM LUNAS\n• Sisa pembayaran dilunasi saat checkout\n• Jika booking dibatalkan, DP HANGUS",
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+        actionsAlignment: MainAxisAlignment.center,
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
-                  padding: const EdgeInsets.symmetric(vertical: 12)),
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pop(context);
-              },
-              child: const Text('OK, MENGERTI',
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold)),
-            ),
-          )
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFD4AF37),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.point_of_sale, color: Colors.black),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentScreen()));
+                  },
+                  label: const Text('LIHAT DI KASIR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('SELESAI', style: TextStyle(color: Colors.white54)),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white54, size: 16),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 13))),
+      ],
     );
   }
 
@@ -317,10 +337,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
-      appBar: AppBar(
-          title: const Text("Reservasi & DP"),
-          backgroundColor: Colors.black,
-          elevation: 0),
+      appBar: AppBar(title: const Text("Reservasi & DP"), backgroundColor: Colors.black, elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -328,7 +345,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Info Banner - NEW
+              // Info Banner
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -343,38 +360,24 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                     Icon(Icons.info_outline, color: Colors.blueAccent, size: 20),
                     SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        "DP yang dibayar adalah UANG MUKA. Sisa pembayaran dilunasi saat tamu checkout.",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
+                      child: Text("DP adalah UANG MUKA. Tamu harus check-in dalam 10 menit dari waktu booking.", style: TextStyle(color: Colors.white70, fontSize: 12)),
                     ),
                   ],
                 ),
               ),
 
-              // 1. DATA PELANGGAN
               _buildHeader("Data Pelanggan", Icons.person),
               _buildTextField(_nameController, "Nama Pemesan"),
               const SizedBox(height: 12),
-              _buildTextField(_phoneController, "WhatsApp / HP",
-                  inputType: TextInputType.phone),
+              _buildTextField(_phoneController, "WhatsApp / HP", inputType: TextInputType.phone),
               const SizedBox(height: 24),
 
-              // 2. WAKTU & MEJA
               _buildHeader("Waktu & Meja", Icons.event),
               Row(
                 children: [
-                  Expanded(
-                      child: _buildPicker(
-                          "Tanggal",
-                          DateFormat('dd MMM yyyy', 'id_ID')
-                              .format(_selectedDate),
-                          Icons.calendar_today,
-                          _selectDate)),
+                  Expanded(child: _buildPicker("Tanggal", DateFormat('dd MMM yyyy', 'id_ID').format(_selectedDate), Icons.calendar_today, _selectDate)),
                   const SizedBox(width: 12),
-                  Expanded(
-                      child: _buildPicker("Jam", _selectedTime.format(context),
-                          Icons.access_time, _selectTime)),
+                  Expanded(child: _buildPicker("Jam", _selectedTime.format(context), Icons.access_time, _selectTime)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -382,33 +385,22 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
               // Guest Count
               Row(
                 children: [
-                  const Text("Jumlah Tamu:",
-                      style: TextStyle(color: Colors.white70)),
+                  const Text("Jumlah Tamu:", style: TextStyle(color: Colors.white70)),
                   const SizedBox(width: 16),
                   IconButton(
                     onPressed: () {
                       if (_guestCount > 1) setState(() => _guestCount--);
                     },
-                    icon: const Icon(Icons.remove_circle_outline,
-                        color: Colors.white54),
+                    icon: const Icon(Icons.remove_circle_outline, color: Colors.white54),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2A2A2A),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text("$_guestCount",
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(color: const Color(0xFF2A2A2A), borderRadius: BorderRadius.circular(8)),
+                    child: Text("$_guestCount", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                   ),
                   IconButton(
                     onPressed: () => setState(() => _guestCount++),
-                    icon: const Icon(Icons.add_circle_outline,
-                        color: Color(0xFFD4AF37)),
+                    icon: const Icon(Icons.add_circle_outline, color: Color(0xFFD4AF37)),
                   ),
                 ],
               ),
@@ -416,9 +408,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
 
               // Dropdown Meja
               DropdownButtonFormField<int>(
-                value: _selectedTable != null
-                    ? int.tryParse(_selectedTable!['id'].toString())
-                    : null,
+                value: _selectedTable != null ? int.tryParse(_selectedTable!['id'].toString()) : null,
                 dropdownColor: const Color(0xFF333333),
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -426,27 +416,22 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                   labelStyle: const TextStyle(color: Colors.white70),
                   filled: true,
                   fillColor: const Color(0xFF2A2A2A),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.chair, color: Colors.white54),
                 ),
                 items: widget.tables.map((t) {
-                  double tableMinDp =
-                      double.tryParse(t['min_dp'].toString()) ?? 0;
+                  double tableMinDp = double.tryParse(t['min_dp'].toString()) ?? 0;
                   return DropdownMenuItem<int>(
                     value: int.parse(t['id'].toString()),
-                    child: Text(
-                        "${t['table_number']} (${t['capacity']} Pax) - Min DP: Rp ${_formatNumber(tableMinDp)}"),
+                    child: Text("${t['table_number']} (${t['capacity']} Pax) - Min DP: Rp ${_formatNumber(tableMinDp)}"),
                   );
                 }).toList(),
                 onChanged: (val) {
-                  final t = widget.tables.firstWhere(
-                      (tbl) => int.parse(tbl['id'].toString()) == val);
+                  final t = widget.tables.firstWhere((tbl) => int.parse(tbl['id'].toString()) == val);
                   _selectTable(t);
                 },
                 validator: (val) => val == null ? "Wajib pilih meja" : null,
               ),
-
               const SizedBox(height: 24),
 
               // 3. PEMBAYARAN DP
@@ -454,42 +439,29 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3))),
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text("UANG MUKA",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
+                          child: const Text("UANG MUKA", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
                         ),
                         const SizedBox(width: 8),
-                        Text("Min: Rp ${_formatNumber(_minDp)}",
-                            style: const TextStyle(
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold)),
+                        Text("Min: Rp ${_formatNumber(_minDp)}", style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _dpController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24),
+                      style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 24),
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: const InputDecoration(
                         prefixText: "Rp ",
@@ -498,15 +470,12 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                         filled: true,
                         fillColor: Colors.black26,
                         border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
                       validator: (val) {
                         if (val == null || val.isEmpty) return "Wajib diisi";
                         double amount = double.tryParse(val) ?? 0;
-                        if (amount < _minDp) {
-                          return "Minimum Rp ${_formatNumber(_minDp)}";
-                        }
+                        if (amount < _minDp) return "Minimum Rp ${_formatNumber(_minDp)}";
                         return null;
                       },
                     ),
@@ -526,10 +495,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                           Expanded(
                             child: Text(
                               "DP TIDAK DAPAT DIKEMBALIKAN jika booking dibatalkan!",
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold),
+                              style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -540,30 +506,23 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Notes
-              _buildTextField(_notesController, "Catatan (Opsional)",
-                  inputType: TextInputType.multiline),
-
+              _buildTextField(_notesController, "Catatan (Opsional)", inputType: TextInputType.multiline),
               const SizedBox(height: 32),
 
-              // 4. BUTTON SUBMIT
+              // Submit Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD4AF37),
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
+                    backgroundColor: const Color(0xFFD4AF37),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   onPressed: _isLoading ? null : _submitBooking,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.black)
-                      : const Text("PROSES BOOKING & TERIMA DP",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1)),
+                      : const Text("PROSES BOOKING & TERIMA DP", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -581,66 +540,50 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
         children: [
           Icon(icon, color: const Color(0xFFD4AF37), size: 20),
           const SizedBox(width: 8),
-          Text(title,
-              style: const TextStyle(
-                  color: Color(0xFFD4AF37),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 16, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {TextInputType inputType = TextInputType.text}) {
+  Widget _buildTextField(TextEditingController controller, String label, {TextInputType inputType = TextInputType.text}) {
     return TextFormField(
       controller: controller,
       keyboardType: inputType,
       maxLines: inputType == TextInputType.multiline ? 3 : 1,
       style: const TextStyle(color: Colors.white),
-      validator: label.contains("Opsional")
-          ? null
-          : (val) => val!.isEmpty ? "Wajib diisi" : null,
+      validator: label.contains("Opsional") ? null : (val) => val!.isEmpty ? "Wajib diisi" : null,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         filled: true,
         fillColor: const Color(0xFF2A2A2A),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
         focusedBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: Color(0xFFD4AF37))),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(color: Color(0xFFD4AF37)),
+        ),
       ),
     );
   }
 
-  Widget _buildPicker(
-      String label, String value, IconData icon, VoidCallback onTap) {
+  Widget _buildPicker(String label, String value, IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: const Color(0xFF2A2A2A),
-            borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: const Color(0xFF2A2A2A), borderRadius: BorderRadius.circular(12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
               Icon(icon, size: 14, color: Colors.white54),
               const SizedBox(width: 6),
-              Text(label,
-                  style: const TextStyle(color: Colors.white54, fontSize: 12))
+              Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
             ]),
             const SizedBox(height: 6),
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
+            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
       ),

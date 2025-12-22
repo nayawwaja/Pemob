@@ -24,28 +24,37 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
   Timer? _refreshTimer;
   Timer? _durationTimer;
 
+  // NEW: Clock In/Out System
+  bool _isShiftStarted = false;
+  String _currentTime = '';
+  Timer? _clockTimer;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _startClock();
     _loadUserData();
-    _fetchOrders();
-    
-    // Segarkan Ulang Data Server Setiap 10 Detik
-    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (t) => _fetchOrders(silent: true));
-    
-    // Perbarui Tampilan Durasi Setiap 1 Menit
-    _durationTimer = Timer.periodic(const Duration(minutes: 1), (t) {
-      if(mounted) setState(() {}); 
-    });
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
     _durationTimer?.cancel();
+    _clockTimer?.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  // NEW: Start real-time clock
+  void _startClock() {
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
+        });
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -53,10 +62,119 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
     setState(() {
       _userId = prefs.getInt('userId') ?? 0;
       _chefName = prefs.getString('name') ?? 'Koki';
+      _isShiftStarted = prefs.getBool('isShiftStarted') ?? false;
     });
+    
+    // Check actual attendance status from server
+    await _checkAttendanceStatus();
+    
+    // Only fetch orders if shift started
+    if (_isShiftStarted) {
+      _fetchOrders();
+      _refreshTimer = Timer.periodic(const Duration(seconds: 10), (t) => _fetchOrders(silent: true));
+      _durationTimer = Timer.periodic(const Duration(minutes: 1), (t) {
+        if(mounted) setState(() {}); 
+      });
+    } else {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // NEW: Check attendance status from server
+  Future<void> _checkAttendanceStatus() async {
+    try {
+      final res = await ApiService.get('attendance.php?action=get_my_status&user_id=$_userId');
+      if (mounted && res['success'] == true && res['data'] != null) {
+        bool isClockedIn = res['data']['is_clocked_in'] ?? false;
+        setState(() => _isShiftStarted = isClockedIn);
+        
+        // Sync to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isShiftStarted', isClockedIn);
+      }
+    } catch (e) {
+      print("Error checking attendance status: $e");
+    }
+  }
+
+  // NEW: Toggle Clock In/Out
+  Future<void> _toggleShift() async {
+    String action = _isShiftStarted ? 'clock_out' : 'clock_in';
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Memproses Absensi..."), duration: Duration(milliseconds: 800))
+    );
+
+    final res = await ApiService.post('attendance.php?action=$action', {
+      'user_id': _userId,
+    });
+
+    if (res['success'] == true) {
+      setState(() => _isShiftStarted = !_isShiftStarted);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isShiftStarted', _isShiftStarted);
+
+      if (mounted) {
+        _showAttendanceDialog(_isShiftStarted);
+        
+        // Start/Stop timers based on shift status
+        if (_isShiftStarted) {
+          _fetchOrders();
+          _refreshTimer = Timer.periodic(const Duration(seconds: 10), (t) => _fetchOrders(silent: true));
+          _durationTimer = Timer.periodic(const Duration(minutes: 1), (t) {
+            if(mounted) setState(() {}); 
+          });
+        } else {
+          _refreshTimer?.cancel();
+          _durationTimer?.cancel();
+          setState(() {
+            _pendingOrders = [];
+            _cookingOrders = [];
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res['message'] ?? "Gagal Absen"), backgroundColor: Colors.red)
+        );
+      }
+    }
+  }
+
+  // NEW: Show attendance dialog
+  void _showAttendanceDialog(bool isClockIn) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: Row(
+          children: [
+            Icon(isClockIn ? Icons.wb_sunny : Icons.nights_stay, color: const Color(0xFFD4AF37)),
+            const SizedBox(width: 10),
+            Text(isClockIn ? "Selamat Bekerja!" : "Hati-hati di Jalan!", 
+              style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Text(
+          isClockIn 
+            ? "Shift dimulai pada $_currentTime.\nDapur siap beroperasi!"
+            : "Shift berakhir pada $_currentTime.\nDapur dikunci.",
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD4AF37)),
+            onPressed: () => Navigator.pop(ctx), 
+            child: const Text("OK", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> _fetchOrders({bool silent = false}) async {
+    if (!_isShiftStarted) return; // Don't fetch if not clocked in
+    
     if (!silent) setState(() => _isLoading = true);
     
     try {
@@ -79,7 +197,6 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
   }
 
   Future<void> _updateStatus(int orderId, String status) async {
-    // Pembaruan Optimis
     setState(() {
       if (status == 'cooking') {
         final item = _pendingOrders.firstWhere((o) => o['id'] == orderId, orElse: () => null);
@@ -109,40 +226,78 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
       );
       _fetchOrders(silent: true);
     } else {
-      _fetchOrders(); // Kembalikan jika gagal
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal memperbarui status"), backgroundColor: Colors.red));
+      _fetchOrders();
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Gagal memperbarui status"), backgroundColor: Colors.red)
+      );
     }
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
+    if (_isShiftStarted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Harap CLOCK OUT sebelum logout!"), backgroundColor: Colors.orange)
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('Logout Sistem', style: TextStyle(color: Colors.white)),
+        content: const Text('Yakin ingin keluar aplikasi?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    String dateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
+    
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
-              expandedHeight: 180.0,
+              expandedHeight: 220.0,
               floating: false,
               pinned: true,
               backgroundColor: Colors.black,
               flexibleSpace: FlexibleSpaceBar(
-                background: _buildHeader(),
+                background: _buildHeader(dateNow),
               ),
-              title: const Text("Dapur", style: TextStyle(fontWeight: FontWeight.bold)),
               actions: [
-                IconButton(icon: const Icon(Icons.refresh, color: Color(0xFFD4AF37)), onPressed: _fetchOrders),
-                IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
+                if (_isShiftStarted)
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: Color(0xFFD4AF37)), 
+                    onPressed: _fetchOrders
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.red), 
+                  onPressed: _logout
+                ),
               ],
-              bottom: TabBar(
+              bottom: _isShiftStarted ? TabBar(
                 controller: _tabController,
                 indicatorColor: const Color(0xFFD4AF37),
                 labelColor: const Color(0xFFD4AF37),
@@ -169,24 +324,16 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
                     ),
                   ),
                 ],
-              ),
+              ) : null,
             ),
           ];
         },
-        body: _isLoading 
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)))
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOrderList(_pendingOrders, 'pending'),
-                _buildOrderList(_cookingOrders, 'cooking'),
-              ],
-            ),
+        body: _buildBody(),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String dateNow) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -196,26 +343,151 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
         ),
       ),
       padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          CircleAvatar(
-            radius: 35,
-            backgroundColor: const Color(0xFFD4AF37),
-            child: const Icon(Icons.kitchen, size: 35, color: Colors.black),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle, 
+                  border: Border.all(
+                    color: _isShiftStarted ? Colors.green : Colors.grey, 
+                    width: 2
+                  )
+                ),
+                child: CircleAvatar(
+                  radius: 26,
+                  backgroundColor: const Color(0xFFD4AF37),
+                  child: const Icon(Icons.kitchen, size: 30, color: Colors.black),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Koki $_chefName", 
+                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8, 
+                          height: 8, 
+                          decoration: BoxDecoration(
+                            color: _isShiftStarted ? Colors.green : Colors.red, 
+                            shape: BoxShape.circle
+                          )
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _isShiftStarted ? "Status: ON DUTY" : "Status: OFF DUTY", 
+                          style: TextStyle(
+                            color: _isShiftStarted ? Colors.green : Colors.red, 
+                            fontSize: 12
+                          )
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isShiftStarted ? Colors.red.withOpacity(0.2) : Colors.green,
+                  foregroundColor: _isShiftStarted ? Colors.red : Colors.white,
+                  side: BorderSide(color: _isShiftStarted ? Colors.red : Colors.green),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                onPressed: _toggleShift,
+                icon: Icon(_isShiftStarted ? Icons.logout : Icons.login, size: 18),
+                label: Text(
+                  _isShiftStarted ? "CLOCK OUT" : "CLOCK IN", 
+                  style: const TextStyle(fontWeight: FontWeight.bold)
+                ),
+              )
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05), 
+              borderRadius: BorderRadius.circular(12)
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Koki $_chefName", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                const Text("Sistem Tampilan Dapur (KDS)", style: TextStyle(color: Colors.white54, fontSize: 14)),
+                Text(dateNow, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text(_currentTime, 
+                  style: const TextStyle(
+                    color: Color(0xFFD4AF37), 
+                    fontSize: 16, 
+                    fontWeight: FontWeight.bold, 
+                    fontFamily: 'monospace'
+                  )
+                ),
               ],
             ),
-          ),
+          )
         ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (!_isShiftStarted) {
+      return _buildLockedScreen();
+    }
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
+    }
+
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildOrderList(_pendingOrders, 'pending'),
+        _buildOrderList(_cookingOrders, 'cooking'),
+      ],
+    );
+  }
+
+  Widget _buildLockedScreen() {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white10, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.lock_clock, size: 80, color: Colors.grey),
+            SizedBox(height: 20),
+            Text(
+              "DAPUR TERKUNCI",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 24
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              "Silakan tekan tombol 'CLOCK IN' di atas\nuntuk memulai shift dan membuka akses dapur.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white54, fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -226,7 +498,11 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(type == 'pending' ? Icons.check_circle : Icons.fireplace, size: 80, color: Colors.white10),
+            Icon(
+              type == 'pending' ? Icons.check_circle : Icons.fireplace, 
+              size: 80, 
+              color: Colors.white10
+            ),
             const SizedBox(height: 16),
             Text(
               type == 'pending' ? "Tidak ada pesanan baru" : "Kompor sedang kosong",
@@ -244,7 +520,6 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
         final order = orders[index];
         final items = order['items'] as List? ?? [];
         
-        // Hitung durasi tunggu (Logika Pewaktu Realtime)
         DateTime created;
         try {
           created = DateTime.parse(order['created_at']);
@@ -254,10 +529,9 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
         
         final diff = DateTime.now().difference(created).inMinutes;
         
-        // Warna Indikator Waktu
-        Color timeColor = Colors.green; // < 15 menit
-        if (diff > 30) timeColor = Colors.red; // > 30 menit (Terlambat)
-        else if (diff > 15) timeColor = Colors.orange; // 15-30 menit (Peringatan)
+        Color timeColor = Colors.green;
+        if (diff > 30) timeColor = Colors.red;
+        else if (diff > 15) timeColor = Colors.orange;
 
         final borderColor = type == 'pending' ? const Color(0xFFD4AF37) : Colors.blueAccent;
 
@@ -266,11 +540,13 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
           margin: const EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: diff > 30 ? Colors.red : borderColor, width: diff > 30 ? 2 : 1),
+            side: BorderSide(
+              color: diff > 30 ? Colors.red : borderColor, 
+              width: diff > 30 ? 2 : 1
+            ),
           ),
           child: Column(
             children: [
-              // Kartu Header
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -290,24 +566,28 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
                           ),
                           child: Text(
                             order['table_number'] ?? '?',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold, 
+                              color: Colors.black, 
+                              fontSize: 20
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("MEJA ${order['table_number']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            Text("#${order['order_number']}", style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                            Text("MEJA ${order['table_number']}", 
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text("#${order['order_number']}", 
+                              style: const TextStyle(color: Colors.white54, fontSize: 12)),
                           ],
                         ),
                       ],
                     ),
-                    // Jam Masuk + Lencana Pewaktu
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // PERBAIKAN: MENGGUNAKAN INTL UNTUK MEMFORMAT JAM
                         Text(
                           DateFormat('HH:mm').format(created),
                           style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
@@ -324,7 +604,8 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
                             children: [
                               Icon(Icons.timer, size: 14, color: timeColor),
                               const SizedBox(width: 4),
-                              Text("$diff mnt", style: TextStyle(color: timeColor, fontWeight: FontWeight.bold)),
+                              Text("$diff mnt", 
+                                style: TextStyle(color: timeColor, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -336,7 +617,6 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
               
               const Divider(height: 1, color: Colors.white10),
               
-              // Daftar Item
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -348,25 +628,37 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("${item['quantity']}x", style: TextStyle(color: borderColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                          Text("${item['quantity']}x", 
+                            style: TextStyle(
+                              color: borderColor, 
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 18
+                            )
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item['name'], style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                Text(item['name'], 
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
                                 if (hasNote)
                                   Container(
                                     margin: const EdgeInsets.only(top: 4),
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.pink.withOpacity(0.2), // Sorot Catatan
+                                      color: Colors.pink.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(4),
                                       border: Border.all(color: Colors.pink.withOpacity(0.5)),
                                     ),
                                     child: Text(
                                       "Catatan: ${item['notes']}",
-                                      style: const TextStyle(color: Colors.pinkAccent, fontSize: 12, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                        color: Colors.pinkAccent, 
+                                        fontSize: 12, 
+                                        fontStyle: FontStyle.italic, 
+                                        fontWeight: FontWeight.bold
+                                      ),
                                     ),
                                   ),
                               ],
@@ -379,7 +671,6 @@ class _KitchenScreenState extends State<KitchenScreen> with SingleTickerProvider
                 ),
               ),
               
-              // Tombol Aksi
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: SizedBox(
