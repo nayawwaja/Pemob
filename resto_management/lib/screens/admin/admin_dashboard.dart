@@ -39,7 +39,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   };
 
   List<dynamic> _lowStockItems = [];
-  List<dynamic> _salesChartData = []; // Data Grafik
+  List<dynamic> _salesChartData = [];
 
   @override
   void initState() {
@@ -76,16 +76,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     setState(() => _isLoading = true);
 
     try {
-      // REFACTOR: Panggil satu endpoint terpusat untuk semua data dasbor.
-      final res =
-          await ApiService.get('dashboard.php?action=get_admin_dashboard');
-
-      // FIX: Ambil data chart langsung dari orders.php jika dashboard.php kosong/gagal memuat chart
-      final chartRes =
-          await ApiService.get('orders.php?action=get_sales_chart');
-      if (chartRes['success'] == true) {
-        setState(() => _salesChartData = chartRes['data']);
-      }
+      // Load dashboard data
+      final res = await ApiService.get('dashboard.php?action=get_admin_dashboard');
 
       if (mounted) {
         if (res['success'] == true && res['data'] != null) {
@@ -93,19 +85,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
           setState(() {
             _stats = data['stats'] ?? _stats;
             _lowStockItems = data['low_stock_items'] ?? [];
-            // Prioritaskan data dari orders.php jika ada
-            if (_salesChartData.isEmpty) {
-              _salesChartData = data['sales_chart_data'] ?? [];
-            }
-            _isLoading = false;
+            _salesChartData = data['sales_chart_data'] ?? [];
           });
-        } else {
-          throw Exception(res['message'] ?? 'Gagal memuat data dasbor');
         }
       }
+
+      // Fallback: Load sales chart from orders.php if empty
+      if (_salesChartData.isEmpty) {
+        await _loadSalesChartSeparately();
+      }
+
+      if (mounted) setState(() => _isLoading = false);
     } catch (e) {
       print("Kesalahan Dasbor: $e");
+      await _loadSalesChartSeparately();
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadSalesChartSeparately() async {
+    try {
+      final chartRes = await ApiService.get('orders.php?action=get_sales_chart');
+      if (mounted && chartRes['success'] == true) {
+        setState(() => _salesChartData = chartRes['data'] ?? []);
+      }
+    } catch (e) {
+      print("Error loading sales chart: $e");
     }
   }
 
@@ -141,6 +146,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
         (route) => false,
       );
     }
+  }
+
+  // Helper untuk parsing aman
+  double _safeParseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
+  int _safeParseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    return int.tryParse(value.toString()) ?? 0;
   }
 
   @override
@@ -227,11 +246,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _buildWelcomeSection() {
     final hour = DateTime.now().hour;
     String greeting = 'Selamat Pagi';
-    if (hour >= 12 && hour < 15)
+    if (hour >= 12 && hour < 15) {
       greeting = 'Selamat Siang';
-    else if (hour >= 15 && hour < 18)
+    } else if (hour >= 15 && hour < 18) {
       greeting = 'Selamat Sore';
-    else if (hour >= 18) greeting = 'Selamat Malam';
+    } else if (hour >= 18) {
+      greeting = 'Selamat Malam';
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -300,19 +321,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      // UBAH DARI 1.4 MENJADI 1.25 AGAR KARTU LEBIH TINGGI
       childAspectRatio: 1.25,
       children: [
         _buildStatCard(
             "Total Pendapatan",
-            "Rp ${_formatCurrency(_stats['total_revenue'])}",
+            "Rp ${_formatCurrency(_safeParseDouble(_stats['total_revenue']))}",
             Icons.monetization_on,
             Colors.green),
-        _buildStatCard("Total Pesanan", "${_stats['total_orders']}",
+        _buildStatCard("Total Pesanan", "${_safeParseInt(_stats['total_orders'])}",
             Icons.shopping_cart, Colors.blue),
-        _buildStatCard("Pemesanan / Reservasi", "${_stats['today_bookings']}",
+        _buildStatCard("Pemesanan / Reservasi", "${_safeParseInt(_stats['today_bookings'])}",
             Icons.event_seat, Colors.orange),
-        _buildStatCard("Antrian Dapur", "${_stats['pending_orders']}",
+        _buildStatCard("Antrian Dapur", "${_safeParseInt(_stats['pending_orders'])}",
             Icons.soup_kitchen, Colors.redAccent),
       ],
     );
@@ -321,7 +341,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color) {
     return Container(
-      // UBAH PADDING DARI 16 MENJADI 12
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF2A2A2A),
@@ -339,10 +358,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, color: color, size: 24),
           ),
-          // UBAH TINGGI DARI 12 MENJADI 8
           const SizedBox(height: 8),
-
-          // Tambahkan FittedBox agar teks mengecil otomatis jika terlalu panjang
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -354,7 +370,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
               maxLines: 1,
             ),
           ),
-
           Text(title,
               style: const TextStyle(color: Colors.white54, fontSize: 11),
               maxLines: 1,
@@ -373,15 +388,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
             color: const Color(0xFF2A2A2A),
             borderRadius: BorderRadius.circular(16)),
         alignment: Alignment.center,
-        child: const Text("Belum ada data penjualan minggu ini",
-            style: TextStyle(color: Colors.white38)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.bar_chart, size: 48, color: Colors.white24),
+            const SizedBox(height: 12),
+            const Text("Belum ada data penjualan minggu ini",
+                style: TextStyle(color: Colors.white38)),
+          ],
+        ),
       );
     }
 
     // Cari nilai maks untuk skala Y
     double maxY = 0;
     for (var d in _salesChartData) {
-      double val = double.parse(d['amount'].toString());
+      double val = _safeParseDouble(d['amount']);
       if (val > maxY) maxY = val;
     }
     maxY = maxY == 0 ? 100000 : maxY * 1.2; // Buffer atas
@@ -399,14 +421,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
           alignment: BarChartAlignment.spaceAround,
           maxY: maxY,
           barTouchData: BarTouchData(
+            enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              // PERBAIKAN: Menggunakan tooltipBgColor (kompatibel versi lama & stabil)
-              tooltipBgColor: Colors.blueGrey,
+              tooltipBgColor: Colors.blueGrey.shade800,
+              tooltipRoundedRadius: 8,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                String day = '';
+                if (groupIndex >= 0 && groupIndex < _salesChartData.length) {
+                  day = _salesChartData[groupIndex]['day'] ?? '';
+                }
                 return BarTooltipItem(
-                  _formatCurrency(rod.toY),
+                  '$day\nRp ${_formatCurrency(rod.toY)}',
                   const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white, 
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
                 );
               },
             ),
@@ -416,15 +445,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: 30,
                 getTitlesWidget: (double value, TitleMeta meta) {
                   int index = value.toInt();
                   if (index >= 0 && index < _salesChartData.length) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
-                        _salesChartData[index]['day'],
+                        _salesChartData[index]['day'] ?? '',
                         style: const TextStyle(
-                            color: Colors.white54, fontSize: 10),
+                            color: Colors.white54, 
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
                       ),
                     );
                   }
@@ -432,27 +464,50 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 },
               ),
             ),
-            leftTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 50,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  if (value == 0) return const Text('');
+                  String formatted = _formatCompactCurrency(value);
+                  return Text(
+                    formatted,
+                    style: const TextStyle(color: Colors.white38, fontSize: 9),
+                  );
+                },
+              ),
+            ),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-          gridData: const FlGridData(show: false),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: maxY / 4,
+            getDrawingHorizontalLine: (value) {
+              return FlLine(
+                color: Colors.white.withOpacity(0.05),
+                strokeWidth: 1,
+              );
+            },
+          ),
           borderData: FlBorderData(show: false),
           barGroups: _salesChartData.asMap().entries.map((entry) {
             int index = entry.key;
-            double val = double.parse(entry.value['amount'].toString());
+            double val = _safeParseDouble(entry.value['amount']);
+            
+            // Warna berbeda untuk hari ini
+            bool isToday = index == _salesChartData.length - 1;
+            
             return BarChartGroupData(
               x: index,
               barRods: [
                 BarChartRodData(
                   toY: val,
-                  color: const Color(0xFFD4AF37),
-                  width: 14,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(6)),
+                  color: isToday ? const Color(0xFFD4AF37) : const Color(0xFFD4AF37).withOpacity(0.6),
+                  width: 16,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY: maxY,
@@ -498,11 +553,28 @@ class _AdminDashboardState extends State<AdminDashboard> {
             itemBuilder: (context, index) {
               final item = _lowStockItems[index];
               return ListTile(
-                title: Text(item['name'],
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.inventory_2, color: Colors.redAccent, size: 20),
+                ),
+                title: Text(item['name'] ?? 'Unknown',
                     style: const TextStyle(color: Colors.white, fontSize: 14)),
-                trailing: Text("Sisa: ${item['stock']}",
-                    style: const TextStyle(
-                        color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text("Sisa: ${item['stock'] ?? 0}",
+                      style: const TextStyle(
+                          color: Colors.redAccent, 
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12)),
+                ),
               );
             },
           ),
@@ -510,15 +582,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
             Padding(
               padding: const EdgeInsets.all(12),
               child: Center(
-                child: TextButton(
+                child: TextButton.icon(
                   onPressed: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => const ManageMenuScreen()));
                   },
-                  child: const Text("Lihat Semua Stok",
-                      style: TextStyle(color: Colors.white70)),
+                  icon: const Icon(Icons.arrow_forward, size: 16),
+                  label: const Text("Lihat Semua Stok"),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white70),
                 ),
               ),
             )
@@ -572,7 +645,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         'page': const OrderListScreen(),
       },
       {
-        'title': 'Loyalitas Anggota',
+        'title': 'Loyalitas Member',
         'subtitle': 'Poin & Hadiah',
         'icon': Icons.card_membership,
         'color': Colors.pink,
@@ -580,7 +653,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       },
       {
         'title': 'Manajemen Meja',
-        'subtitle': 'Denah & Pemesanan',
+        'subtitle': 'Denah & Booking',
         'icon': Icons.table_restaurant,
         'color': Colors.teal,
         'page': const BookingScreen(),
@@ -622,7 +695,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                      color: item['color'].withOpacity(0.2),
+                      color: (item['color'] as Color).withOpacity(0.2),
                       shape: BoxShape.circle),
                   child: Icon(item['icon'], color: item['color'], size: 20),
                 ),
@@ -647,6 +720,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ],
                   ),
                 ),
+                const Icon(Icons.chevron_right, color: Colors.white24, size: 20),
               ],
             ),
           ),
@@ -655,9 +729,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  String _formatCurrency(dynamic amount) {
-    double val = double.tryParse(amount.toString()) ?? 0.0;
-    return val.toStringAsFixed(0).replaceAllMapped(
+  String _formatCurrency(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  }
+
+  String _formatCompactCurrency(double amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}jt';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}rb';
+    }
+    return amount.toStringAsFixed(0);
   }
 }

@@ -87,7 +87,8 @@ class _StaffDashboardState extends State<StaffDashboard> {
     await Future.wait([
       _loadDashboardStats(),
       _loadActivityLogs(),
-      _loadNotifications()
+      _loadNotifications(),
+      _checkAttendanceStatus(), // NEW: Check actual attendance status from server
     ]);
     if (mounted) setState(() => _isLoading = false);
   }
@@ -117,7 +118,6 @@ class _StaffDashboardState extends State<StaffDashboard> {
           double orderRev = _safeParseDouble(_stats['order_revenue']);
           
           // Simulasi split revenue (karena API belum kirim detail)
-          // Jika nanti API kirim 'cash_revenue' dan 'digital_revenue', ganti logika ini.
           _stats['cash_revenue'] = orderRev; 
           _stats['digital_revenue'] = total - orderRev;
         });
@@ -131,7 +131,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
     try {
       final res = await ApiService.get('staff.php?action=get_activity_logs');
       if (mounted && res['success'] == true) {
-        setState(() => _activityLogs = res['data']);
+        setState(() => _activityLogs = res['data'] ?? []);
       }
     } catch (e) {
       print("Error logs: $e");
@@ -142,17 +142,38 @@ class _StaffDashboardState extends State<StaffDashboard> {
     try {
       final res = await ApiService.get('staff.php?action=get_notifications&role=$_userRole&user_id=$_userId');
       if (mounted && res['success'] == true) {
-        setState(() => _notifications = res['data']);
+        setState(() => _notifications = res['data'] ?? []);
       }
     } catch (e) {
       print("Error notif: $e");
     }
   }
 
+  // NEW: Check attendance status from server
+  Future<void> _checkAttendanceStatus() async {
+    if (_userRole == 'admin') return; // Admin tidak punya absensi
+    
+    try {
+      final res = await ApiService.get('attendance.php?action=get_my_status&user_id=$_userId');
+      if (mounted && res['success'] == true && res['data'] != null) {
+        bool isClockedIn = res['data']['is_clocked_in'] ?? false;
+        setState(() => _isShiftStarted = isClockedIn);
+        
+        // Sync ke SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isShiftStarted', isClockedIn);
+      }
+    } catch (e) {
+      print("Error checking attendance status: $e");
+    }
+  }
+
+  // FIXED: Use correct attendance.php endpoint
   Future<void> _toggleShift() async {
     String action = _isShiftStarted ? 'clock_out' : 'clock_in';
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Memproses Absensi..."), duration: Duration(milliseconds: 800)));
 
+    // FIXED: Call attendance.php instead of staff.php
     final res = await ApiService.post('attendance.php?action=$action', {
       'user_id': _userId,
     });
@@ -639,17 +660,17 @@ class _StaffDashboardState extends State<StaffDashboard> {
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border(left: BorderSide(color: _getActivityColor(log['action_type']), width: 3)),
+                    border: Border(left: BorderSide(color: _getActivityColor(log['action_type'] ?? ''), width: 3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "${log['user_name']} • ${log['action_type']}",
-                        style: TextStyle(color: _getActivityColor(log['action_type']), fontSize: 11, fontWeight: FontWeight.bold),
+                        "${log['user_name'] ?? 'System'} • ${log['action_type'] ?? 'ACTION'}",
+                        style: TextStyle(color: _getActivityColor(log['action_type'] ?? ''), fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
-                      Text(log['description'], style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      Text(log['description'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 12)),
                     ],
                   ),
                 ),

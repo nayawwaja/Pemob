@@ -3,7 +3,6 @@ require_once '../config/database.php';
 $db = (new Database())->getConnection();
 
 if (!function_exists('sendResponse')) {
-    // Helper untuk mengirim response JSON
     function sendResponse($success, $message, $data = null, $httpCode = 200) {
         http_response_code($httpCode);
         header('Content-Type: application/json');
@@ -34,18 +33,94 @@ switch($action) {
     case 'get_notifications':
         getNotifications($db);
         break;
+    // === TAMBAHAN: Handler untuk attendance dari staff dashboard ===
+    case 'attendance':
+        handleAttendance($db, $input);
+        break;
     default:
         sendResponse(false, "Invalid action for staff API", null, 400);
 }
 
 /**
- * --- FUNGSI UTAMA ---
- * Fungsi ini mengambil semua data pengguna yang bukan 'admin'.
- * Inilah yang menyediakan data untuk layar Manajemen SDM.
+ * TAMBAHAN: Handler attendance untuk kompatibilitas dengan staff_dashboard.dart
+ * Sebenarnya sebaiknya panggil langsung ke attendance.php, 
+ * tapi ini sebagai fallback/redirect
  */
+function handleAttendance($db, $input) {
+    $userId = $input['user_id'] ?? 0;
+    $type = $input['type'] ?? 'in'; // 'in' atau 'out'
+    
+    if (empty($userId)) {
+        sendResponse(false, "User ID tidak ditemukan.", null, 400);
+        return;
+    }
+    
+    // Cek role user (admin tidak bisa absen)
+    $stmt = $db->prepare("SELECT role FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $role = $stmt->fetchColumn();
+    
+    if ($role === 'admin') {
+        sendResponse(false, "Admin tidak memiliki sistem absensi.");
+        return;
+    }
+    
+    if ($type === 'in') {
+        // Clock In
+        $checkStmt = $db->prepare("SELECT id FROM attendance WHERE user_id = ? AND clock_out IS NULL");
+        $checkStmt->execute([$userId]);
+        if ($checkStmt->fetch()) {
+            sendResponse(false, "Anda sudah clock-in dan belum clock-out.");
+            return;
+        }
+        
+        try {
+            $stmt = $db->prepare("INSERT INTO attendance (user_id, clock_in, status) VALUES (?, NOW(), 'present')");
+            $stmt->execute([$userId]);
+            
+            // Log activity
+            logActivityInternal($db, $userId, 'CLOCK_IN', 'Staff memulai shift kerja');
+            
+            sendResponse(true, "Clock-in berhasil! Selamat bekerja.");
+        } catch (Exception $e) {
+            sendResponse(false, "Database error: " . $e->getMessage(), null, 500);
+        }
+    } else {
+        // Clock Out
+        $findStmt = $db->prepare("SELECT id, clock_in FROM attendance WHERE user_id = ? AND clock_out IS NULL ORDER BY clock_in DESC LIMIT 1");
+        $findStmt->execute([$userId]);
+        $shift = $findStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$shift) {
+            sendResponse(false, "Tidak ditemukan shift aktif untuk clock-out.");
+            return;
+        }
+        
+        try {
+            $updateStmt = $db->prepare("UPDATE attendance SET clock_out = NOW(), duration_minutes = TIMESTAMPDIFF(MINUTE, clock_in, NOW()) WHERE id = ?");
+            $updateStmt->execute([$shift['id']]);
+            
+            logActivityInternal($db, $userId, 'CLOCK_OUT', 'Staff mengakhiri shift kerja');
+            
+            sendResponse(true, "Clock-out berhasil! Terima kasih.");
+        } catch (Exception $e) {
+            sendResponse(false, "Database error: " . $e->getMessage(), null, 500);
+        }
+    }
+}
+
+// Internal log activity function
+function logActivityInternal($db, $userId, $actionType, $description) {
+    try {
+        $stmt = $db->prepare("INSERT INTO activity_logs (user_id, action_type, description, created_at) VALUES (?, ?, ?, NOW())");
+        $stmt->execute([$userId, $actionType, $description]);
+    } catch (Exception $e) {
+        // Jika tabel belum ada, abaikan saja
+    }
+}
+
 function getAllStaff($db) {
     try {
-        // Ambil semua user yang role-nya BUKAN 'admin'
         $stmt = $db->prepare("SELECT id, name, email, role, is_active FROM users WHERE role != 'admin' ORDER BY name ASC");
         $stmt->execute();
         $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -57,7 +132,6 @@ function getAllStaff($db) {
 
 function getAccessCodes($db) {
     try {
-        // Ambil hanya kode yang belum terpakai
         $stmt = $db->prepare("SELECT * FROM staff_access_codes WHERE is_used = 0 ORDER BY created_at DESC");
         $stmt->execute();
         $codes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -75,7 +149,6 @@ function generateCode($db, $input) {
 
     $role = $input['role'];
     $createdBy = $input['created_by'];
-    // Buat kode yang lebih mudah dibaca
     $code = strtoupper(substr($role, 0, 3)) . '-' . substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 6);
 
     try {
@@ -98,7 +171,6 @@ function toggleStatus($db, $input) {
     $status = $input['status'];
 
     try {
-        // Pengaman: tidak bisa menonaktifkan akun admin
         $checkStmt = $db->prepare("SELECT role FROM users WHERE id = ?");
         $checkStmt->execute([$userId]);
         $user = $checkStmt->fetch(PDO::FETCH_ASSOC);
@@ -118,9 +190,6 @@ function toggleStatus($db, $input) {
 
 function getActivityLogs($db) {
     try {
-        // Ambil 20 log aktivitas terakhir
-        // Pastikan tabel activity_logs ada. Jika belum, buat tabelnya.
-        // Struktur: id, user_id, action_type, description, created_at
         $sql = "SELECT l.*, u.name as user_name, 
                 CASE 
                     WHEN TIMESTAMPDIFF(MINUTE, l.created_at, NOW()) < 60 THEN CONCAT(TIMESTAMPDIFF(MINUTE, l.created_at, NOW()), 'm ago')
@@ -136,18 +205,27 @@ function getActivityLogs($db) {
         $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendResponse(true, "Logs retrieved", $logs);
     } catch (Exception $e) {
-        // Jika tabel belum ada, return array kosong agar tidak error di app
-        sendResponse(true, "No logs (Table might be missing)", []);
+        sendResponse(true, "No logs available", []);
     }
 }
 
 function getNotifications($db) {
-    // Placeholder untuk notifikasi
-    // Di sistem nyata, ini mengambil dari tabel notifications berdasarkan role/user_id
     $role = $_GET['role'] ?? '';
     $userId = $_GET['user_id'] ?? 0;
     
-    // Return array kosong untuk saat ini agar tidak error 400
-    sendResponse(true, "Notifications retrieved", []);
+    try {
+        // Ambil notifikasi yang belum dibaca untuk role atau user tertentu
+        $sql = "SELECT * FROM notifications 
+                WHERE (target_role = ? OR target_user_id = ?) 
+                AND is_read = 0 
+                ORDER BY created_at DESC LIMIT 10";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$role, $userId]);
+        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        sendResponse(true, "Notifications retrieved", $notifications);
+    } catch (Exception $e) {
+        // Jika tabel belum ada, return array kosong
+        sendResponse(true, "Notifications retrieved", []);
+    }
 }
 ?>

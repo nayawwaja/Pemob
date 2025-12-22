@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 21, 2025 at 09:49 PM
+-- Generation Time: Dec 22, 2025 at 01:19 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -97,6 +97,45 @@ CREATE TABLE `activity_logs` (
   `action_type` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `description`, `ip_address`, `user_agent`, `metadata`, `created_at`, `action_type`) VALUES
+(1, 1, NULL, 'Order #3 -> cancelled', NULL, NULL, NULL, '2025-12-21 22:02:39', 'UPDATE_STATUS'),
+(2, 1, NULL, 'Order #1 -> cancelled', NULL, NULL, NULL, '2025-12-21 22:02:43', 'UPDATE_STATUS'),
+(3, 1, NULL, 'Terima Pembayaran ORD-221201-B2-02 via QRIS (Rp 172,500)', NULL, NULL, NULL, '2025-12-21 22:02:52', 'PAYMENT'),
+(4, 1, NULL, 'Booking RES-2274 dibuat. DP: Rp 123', NULL, NULL, NULL, '2025-12-21 22:13:52', 'CREATE_BOOKING'),
+(5, 1, NULL, 'Order baru ORD-251221231552-5-345 (Meja A5)', NULL, NULL, NULL, '2025-12-21 22:15:52', 'CREATE_ORDER'),
+(6, 1, NULL, 'Order #5 -> cooking', NULL, NULL, NULL, '2025-12-21 22:16:09', 'UPDATE_STATUS'),
+(7, 1, NULL, 'Order #5 -> ready', NULL, NULL, NULL, '2025-12-21 22:16:10', 'UPDATE_STATUS'),
+(8, 1, NULL, 'Order #5 -> served', NULL, NULL, NULL, '2025-12-21 22:16:17', 'UPDATE_STATUS'),
+(9, 1, NULL, 'Terima Pembayaran ORD-251221231552-5-345 via CASH (Rp 40,250)', NULL, NULL, NULL, '2025-12-21 22:16:30', 'PAYMENT'),
+(10, 2, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:28:15', 'LOGIN'),
+(11, 3, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:29:02', 'LOGIN'),
+(12, 5, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:29:22', 'LOGIN'),
+(13, 5, NULL, 'Ubah status meja ID 5 jadi available', NULL, NULL, NULL, '2025-12-21 22:29:24', 'UPDATE_TABLE'),
+(14, 5, NULL, 'Ubah status meja ID 7 jadi available', NULL, NULL, NULL, '2025-12-21 22:29:24', 'UPDATE_TABLE'),
+(15, 5, NULL, 'Order baru ORD-251221232931-5-693 (Meja A5)', NULL, NULL, NULL, '2025-12-21 22:29:31', 'CREATE_ORDER'),
+(16, 3, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:29:50', 'LOGIN'),
+(17, 3, NULL, 'Order #6 -> cooking', NULL, NULL, NULL, '2025-12-21 22:29:52', 'UPDATE_STATUS'),
+(18, 3, NULL, 'Order #6 -> ready', NULL, NULL, NULL, '2025-12-21 22:29:53', 'UPDATE_STATUS'),
+(19, 8, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:30:07', 'LOGIN'),
+(20, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:31:16', 'LOGIN'),
+(21, 1, NULL, 'Order baru ORD-251221235003-4-739 (Meja A4)', NULL, NULL, NULL, '2025-12-21 22:50:03', 'CREATE_ORDER'),
+(22, 1, NULL, 'Order #7 -> cooking', NULL, NULL, NULL, '2025-12-21 22:50:08', 'UPDATE_STATUS'),
+(23, 1, NULL, 'Order #7 -> ready', NULL, NULL, NULL, '2025-12-21 22:50:10', 'UPDATE_STATUS'),
+(24, 1, NULL, 'Order #6 -> served', NULL, NULL, NULL, '2025-12-21 22:50:41', 'UPDATE_STATUS'),
+(25, 1, NULL, 'Order #7 -> served', NULL, NULL, NULL, '2025-12-21 22:50:42', 'UPDATE_STATUS'),
+(26, 1, NULL, 'Terima Pembayaran ORD-251221232931-5-693 via TRANSFER (Rp 55,200)', NULL, NULL, NULL, '2025-12-21 22:50:55', 'PAYMENT'),
+(27, 1, NULL, 'Terima Pembayaran ORD-251221235003-4-739 via CASH (Rp 80,500)', NULL, NULL, NULL, '2025-12-21 22:51:05', 'PAYMENT'),
+(28, 8, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:51:29', 'LOGIN'),
+(29, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-21 22:52:54', 'LOGIN'),
+(30, 1, NULL, 'Booking RES-4307 dibuat. DP: Rp 120,000', NULL, NULL, NULL, '2025-12-21 22:53:15', 'CREATE_BOOKING'),
+(31, 1, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:10:06', 'LOGIN'),
+(34, 1, NULL, 'Booking RES-8725 dibuat. DP: Rp 100,000 (Belum Lunas)', NULL, NULL, NULL, '2025-12-22 00:11:11', 'CREATE_BOOKING'),
+(35, 8, NULL, 'User logged in', NULL, NULL, NULL, '2025-12-22 00:12:19', 'LOGIN');
+
 -- --------------------------------------------------------
 
 --
@@ -115,6 +154,7 @@ CREATE TABLE `bookings` (
   `booking_time` time NOT NULL,
   `duration` int(11) DEFAULT 120 COMMENT 'Durasi dalam menit',
   `guest_count` int(11) DEFAULT 2,
+  `down_payment` decimal(12,2) DEFAULT 0.00,
   `status` enum('pending','confirmed','checked_in','completed','cancelled','no_show') DEFAULT 'pending',
   `special_request` text DEFAULT NULL,
   `confirmed_by` int(11) DEFAULT NULL,
@@ -124,6 +164,15 @@ CREATE TABLE `bookings` (
   `dp_paid` tinyint(1) DEFAULT 0,
   `check_in_time` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `bookings`
+--
+
+INSERT INTO `bookings` (`id`, `table_id`, `customer_id`, `customer_name`, `customer_phone`, `customer_email`, `booking_code`, `booking_date`, `booking_time`, `duration`, `guest_count`, `down_payment`, `status`, `special_request`, `confirmed_by`, `notes`, `created_at`, `updated_at`, `dp_paid`, `check_in_time`) VALUES
+(1, 9, NULL, '123', '123', NULL, 'RES-2274', '2025-12-22', '05:13:00', 120, 2, 123.00, 'cancelled', NULL, NULL, ' [Auto-Cancel by System]', '2025-12-21 22:13:52', '2025-12-22 00:10:25', 0, NULL),
+(2, 16, NULL, 'ad', 'ad', NULL, 'RES-4307', '2025-12-22', '05:53:00', 120, 2, 120000.00, 'cancelled', NULL, NULL, ' [Auto-Cancel by System]', '2025-12-21 22:53:15', '2025-12-22 00:10:25', 0, NULL),
+(3, 15, NULL, '1', '123', NULL, 'RES-8725', '2025-12-22', '07:10:00', 120, 9, 100000.00, 'confirmed', NULL, 9, '', '2025-12-22 00:11:11', '2025-12-22 00:11:11', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -202,7 +251,7 @@ CREATE TABLE `customers` (
 
 INSERT INTO `customers` (`id`, `name`, `phone`, `email`, `address`, `birth_date`, `loyalty_points`, `total_spent`, `visit_count`, `membership_tier`, `notes`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'Budi Santoso', '081111111111', 'budi@email.com', NULL, NULL, 150, 1500000.00, 12, 'silver', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(2, 'Siti Rahayu', '081222222222', 'siti@email.com', NULL, NULL, 320, 3200000.00, 25, 'gold', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 'Siti Rahayu', '081222222222', 'siti@email.com', NULL, NULL, 492, 3372500.00, 26, 'gold', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:02:52'),
 (3, 'Ahmad Wijaya', '081333333333', 'ahmad@email.com', NULL, NULL, 50, 500000.00, 5, 'bronze', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
 (4, 'Dewi Lestari', '081444444444', 'dewi@email.com', NULL, NULL, 580, 5800000.00, 45, 'platinum', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
 (5, 'Rudi Hermawan', '081555555555', 'rudi@email.com', NULL, NULL, 200, 2000000.00, 18, 'silver', NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
@@ -231,6 +280,16 @@ CREATE TABLE `inventory_logs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `inventory_logs`
+--
+
+INSERT INTO `inventory_logs` (`id`, `menu_item_id`, `quantity_change`, `quantity_before`, `quantity_after`, `reason`, `reference_id`, `user_id`, `notes`, `created_at`) VALUES
+(1, 7, -1, 80, 79, 'system_update', NULL, NULL, NULL, '2025-12-21 22:15:52'),
+(2, 6, -1, 60, 59, 'system_update', NULL, NULL, NULL, '2025-12-21 22:29:31'),
+(3, 7, -1, 79, 78, 'system_update', NULL, NULL, NULL, '2025-12-21 22:50:03'),
+(4, 7, -1, 78, 77, 'system_update', NULL, NULL, NULL, '2025-12-21 22:50:18');
+
 -- --------------------------------------------------------
 
 --
@@ -249,6 +308,7 @@ CREATE TABLE `menu_items` (
   `is_available` tinyint(1) DEFAULT 1,
   `is_featured` tinyint(1) DEFAULT 0,
   `preparation_time` int(11) DEFAULT NULL COMMENT 'Waktu persiapan dalam menit',
+  `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -257,50 +317,50 @@ CREATE TABLE `menu_items` (
 -- Dumping data for table `menu_items`
 --
 
-INSERT INTO `menu_items` (`id`, `category_id`, `name`, `description`, `price`, `stock`, `image_url`, `is_available`, `is_featured`, `preparation_time`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran', 35000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(2, 1, 'Nasi Goreng Seafood', 'Nasi goreng dengan udang, cumi, dan kerang', 45000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(3, 1, 'Mie Goreng Jawa', 'Mie goreng dengan bumbu khas Jawa', 32000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(4, 1, 'Mie Ayam Bakso', 'Mie ayam dengan bakso sapi', 30000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(5, 1, 'Nasi Campur Bali', 'Nasi dengan lauk khas Bali lengkap', 55000.00, 50, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(6, 1, 'Ayam Bakar Madu', 'Ayam bakar dengan saus madu spesial', 48000.00, 60, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(7, 1, 'Ayam Geprek Sambal Matah', 'Ayam geprek dengan sambal matah Bali', 35000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(8, 1, 'Ikan Bakar Rica-Rica', 'Ikan bakar dengan bumbu rica-rica pedas', 52000.00, 40, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(9, 1, 'Sate Ayam (10 tusuk)', 'Sate ayam dengan bumbu kacang', 38000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(10, 1, 'Sate Kambing (10 tusuk)', 'Sate kambing muda empuk', 55000.00, 50, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(11, 1, 'Rendang Sapi', 'Rendang sapi Padang asli', 58000.00, 40, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(12, 1, 'Gulai Kambing', 'Gulai kambing dengan kuah kental', 52000.00, 35, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(13, 2, 'Lumpia Goreng (5 pcs)', 'Lumpia isi sayuran dan ayam', 25000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(14, 2, 'Tahu Crispy', 'Tahu goreng crispy dengan saus', 18000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(15, 2, 'Tempe Mendoan (5 pcs)', 'Tempe tipis goreng tepung', 15000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(16, 2, 'Sop Buntut', 'Sop buntut sapi dengan kuah bening', 65000.00, 30, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(17, 2, 'Soto Ayam', 'Soto ayam dengan nasi dan pelengkap', 32000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(18, 2, 'Gado-Gado', 'Sayuran dengan bumbu kacang', 28000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(19, 3, 'Es Teh Manis', 'Teh manis dingin segar', 8000.00, 200, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(20, 3, 'Es Jeruk', 'Jeruk peras segar dengan es', 12000.00, 200, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(21, 3, 'Jus Alpukat', 'Jus alpukat dengan susu coklat', 18000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(22, 3, 'Jus Mangga', 'Jus mangga segar', 15000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(23, 3, 'Es Kelapa Muda', 'Kelapa muda dengan es', 15000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(24, 3, 'Kopi Hitam', 'Kopi tubruk tradisional', 10000.00, 200, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(25, 3, 'Cappuccino', 'Cappuccino dengan foam susu', 22000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(26, 3, 'Latte', 'Kopi latte creamy', 25000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(27, 3, 'Matcha Latte', 'Green tea latte', 28000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(28, 3, 'Air Mineral', 'Air mineral botol', 6000.00, 300, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(29, 4, 'Es Cendol', 'Cendol dengan santan dan gula merah', 15000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(30, 4, 'Es Campur', 'Es campur dengan aneka topping', 18000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(31, 4, 'Pisang Goreng Keju', 'Pisang goreng dengan keju dan coklat', 20000.00, 80, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(32, 4, 'Kolak Pisang', 'Kolak pisang dengan santan', 15000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(33, 4, 'Puding Coklat', 'Puding coklat dengan vla', 18000.00, 60, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(34, 4, 'Es Krim Vanilla', 'Es krim vanilla 2 scoop', 20000.00, 50, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(35, 5, 'Kentang Goreng', 'French fries crispy', 22000.00, 100, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(36, 5, 'Onion Ring', 'Onion ring crispy', 20000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(37, 5, 'Chicken Wings (6 pcs)', 'Sayap ayam goreng crispy', 35000.00, 60, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(38, 5, 'Cireng (5 pcs)', 'Aci goreng dengan bumbu rujak', 12000.00, 100, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(39, 5, 'Pisang Keju', 'Pisang bakar dengan keju', 18000.00, 80, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(40, 6, 'Paket Nasi Ayam Geprek + Es Teh', 'Nasi ayam geprek dengan es teh manis', 40000.00, 50, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(41, 6, 'Paket Mie Ayam + Jus Jeruk', 'Mie ayam bakso dengan jus jeruk', 38000.00, 50, NULL, 1, 0, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(42, 6, 'Paket Nasi Goreng + Es Teh', 'Nasi goreng spesial dengan es teh', 40000.00, 50, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(43, 6, 'Paket Keluarga (4 orang)', 'Nasi goreng 4 + ayam bakar 4 + es teh 4', 150000.00, 20, NULL, 1, 1, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
+INSERT INTO `menu_items` (`id`, `category_id`, `name`, `description`, `price`, `discount_price`, `stock`, `image_url`, `is_available`, `is_featured`, `preparation_time`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran', 35000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(2, 1, 'Nasi Goreng Seafood', 'Nasi goreng dengan udang, cumi, dan kerang', 45000.00, NULL, 80, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(3, 1, 'Mie Goreng Jawa', 'Mie goreng dengan bumbu khas Jawa', 32000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 1, 'Mie Ayam Bakso', 'Mie ayam dengan bakso sapi', 30000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(5, 1, 'Nasi Campur Bali', 'Nasi dengan lauk khas Bali lengkap', 55000.00, NULL, 50, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(6, 1, 'Ayam Bakar Madu', 'Ayam bakar dengan saus madu spesial', 48000.00, NULL, 59, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:29:31'),
+(7, 1, 'Ayam Geprek Sambal Matah', 'Ayam geprek dengan sambal matah Bali', 35000.00, NULL, 77, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:50:18'),
+(8, 1, 'Ikan Bakar Rica-Rica', 'Ikan bakar dengan bumbu rica-rica pedas', 52000.00, NULL, 40, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(9, 1, 'Sate Ayam (10 tusuk)', 'Sate ayam dengan bumbu kacang', 38000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(10, 1, 'Sate Kambing (10 tusuk)', 'Sate kambing muda empuk', 55000.00, NULL, 50, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(11, 1, 'Rendang Sapi', 'Rendang sapi Padang asli', 58000.00, NULL, 40, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(12, 1, 'Gulai Kambing', 'Gulai kambing dengan kuah kental', 52000.00, NULL, 35, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(13, 2, 'Lumpia Goreng (5 pcs)', 'Lumpia isi sayuran dan ayam', 25000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(14, 2, 'Tahu Crispy', 'Tahu goreng crispy dengan saus', 18000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(15, 2, 'Tempe Mendoan (5 pcs)', 'Tempe tipis goreng tepung', 15000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(16, 2, 'Sop Buntut', 'Sop buntut sapi dengan kuah bening', 65000.00, NULL, 30, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(17, 2, 'Soto Ayam', 'Soto ayam dengan nasi dan pelengkap', 32000.00, NULL, 80, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(18, 2, 'Gado-Gado', 'Sayuran dengan bumbu kacang', 28000.00, NULL, 80, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(19, 3, 'Es Teh Manis', 'Teh manis dingin segar', 8000.00, NULL, 200, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(20, 3, 'Es Jeruk', 'Jeruk peras segar dengan es', 12000.00, NULL, 200, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(21, 3, 'Jus Alpukat', 'Jus alpukat dengan susu coklat', 18000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(22, 3, 'Jus Mangga', 'Jus mangga segar', 15000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(23, 3, 'Es Kelapa Muda', 'Kelapa muda dengan es', 15000.00, NULL, 80, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(24, 3, 'Kopi Hitam', 'Kopi tubruk tradisional', 10000.00, NULL, 200, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(25, 3, 'Cappuccino', 'Cappuccino dengan foam susu', 22000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(26, 3, 'Latte', 'Kopi latte creamy', 25000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(27, 3, 'Matcha Latte', 'Green tea latte', 28000.00, NULL, 80, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(28, 3, 'Air Mineral', 'Air mineral botol', 6000.00, NULL, 300, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(29, 4, 'Es Cendol', 'Cendol dengan santan dan gula merah', 15000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(30, 4, 'Es Campur', 'Es campur dengan aneka topping', 18000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(31, 4, 'Pisang Goreng Keju', 'Pisang goreng dengan keju dan coklat', 20000.00, NULL, 80, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(32, 4, 'Kolak Pisang', 'Kolak pisang dengan santan', 15000.00, NULL, 80, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(33, 4, 'Puding Coklat', 'Puding coklat dengan vla', 18000.00, NULL, 60, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(34, 4, 'Es Krim Vanilla', 'Es krim vanilla 2 scoop', 20000.00, NULL, 50, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(35, 5, 'Kentang Goreng', 'French fries crispy', 22000.00, NULL, 100, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(36, 5, 'Onion Ring', 'Onion ring crispy', 20000.00, NULL, 80, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(37, 5, 'Chicken Wings (6 pcs)', 'Sayap ayam goreng crispy', 35000.00, NULL, 60, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(38, 5, 'Cireng (5 pcs)', 'Aci goreng dengan bumbu rujak', 12000.00, NULL, 100, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(39, 5, 'Pisang Keju', 'Pisang bakar dengan keju', 18000.00, NULL, 80, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(40, 6, 'Paket Nasi Ayam Geprek + Es Teh', 'Nasi ayam geprek dengan es teh manis', 40000.00, NULL, 50, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(41, 6, 'Paket Mie Ayam + Jus Jeruk', 'Mie ayam bakso dengan jus jeruk', 38000.00, NULL, 50, NULL, 1, 0, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(42, 6, 'Paket Nasi Goreng + Es Teh', 'Nasi goreng spesial dengan es teh', 40000.00, NULL, 50, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(43, 6, 'Paket Keluarga (4 orang)', 'Nasi goreng 4 + ayam bakar 4 + es teh 4', 150000.00, NULL, 20, NULL, 1, 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
 
 --
 -- Triggers `menu_items`
@@ -334,6 +394,19 @@ CREATE TABLE `notifications` (
   `reference_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `target_role`, `target_user_id`, `title`, `message`, `type`, `is_read`, `read_at`, `reference_type`, `reference_id`, `created_at`) VALUES
+(1, 'chef', NULL, 'Pesanan Baru', 'Meja A5: Ayam Geprek Sambal Matah', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:15:52'),
+(2, 'waiter', NULL, 'Update Status', 'Order #5 siap diantar!', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:16:10'),
+(3, 'chef', NULL, 'Pesanan Baru', 'Meja A5: Ayam Bakar Madu', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:29:31'),
+(4, 'waiter', NULL, 'Update Status', 'Order #6 siap diantar!', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:29:53'),
+(5, 'chef', NULL, 'Pesanan Baru', 'Meja A4: Ayam Geprek Sambal Matah', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:50:03'),
+(6, 'waiter', NULL, 'Update Status', 'Order #7 siap diantar!', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:50:10'),
+(7, 'chef', NULL, 'Pesanan Tambahan', 'Meja A4: Ayam Geprek Sambal Matah', 'info', 0, NULL, NULL, NULL, '2025-12-21 22:50:18');
 
 -- --------------------------------------------------------
 
@@ -370,9 +443,15 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `order_number`, `table_id`, `customer_id`, `customer_name`, `customer_phone`, `waiter_id`, `cashier_id`, `subtotal`, `tax`, `service_charge`, `discount`, `total_amount`, `status`, `payment_status`, `payment_method`, `payment_time`, `notes`, `cancel_reason`, `created_at`, `updated_at`) VALUES
-(1, 'ORD-221201-A3-01', 3, 1, 'Budi Santoso', '081111111111', 5, NULL, 100000.00, 10000.00, 5000.00, 0.00, 115000.00, 'served', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 18:45:43', '2025-12-21 19:45:43'),
-(2, 'ORD-221201-B2-02', 7, 2, 'Siti Rahayu', '081222222222', 6, NULL, 150000.00, 15000.00, 7500.00, 0.00, 172500.00, 'payment_pending', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 19:15:43', '2025-12-21 19:45:43'),
-(3, 'ORD-221201-A5-03', 5, NULL, 'Guest', NULL, 5, NULL, 80000.00, 8000.00, 4000.00, 0.00, 92000.00, 'cooking', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 19:30:43', '2025-12-21 19:45:43');
+(1, 'ORD-221201-A3-01', 3, 1, 'Budi Santoso', '081111111111', 5, NULL, 100000.00, 10000.00, 5000.00, 0.00, 115000.00, 'cancelled', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 18:45:43', '2025-12-21 22:02:43'),
+(2, 'ORD-221201-B2-02', 7, 2, 'Siti Rahayu', '081222222222', 6, 1, 150000.00, 15000.00, 7500.00, 0.00, 172500.00, 'completed', 'paid', 'qris', '2025-12-22 05:02:52', NULL, NULL, '2025-12-21 19:15:43', '2025-12-21 22:02:52'),
+(3, 'ORD-221201-A5-03', 5, NULL, 'Guest', NULL, 5, NULL, 80000.00, 8000.00, 4000.00, 0.00, 92000.00, 'cancelled', 'unpaid', NULL, NULL, NULL, NULL, '2025-12-21 19:30:43', '2025-12-21 22:02:39'),
+(4, 'DP-251221-1', 9, NULL, '123 (Deposit Booking)', NULL, NULL, 1, 0.00, 0.00, 0.00, 0.00, 123.00, 'completed', 'paid', 'transfer', '2025-12-22 05:13:52', NULL, NULL, '2025-12-21 22:13:52', '2025-12-21 22:13:52'),
+(5, 'ORD-251221231552-5-345', 5, NULL, 'Guest', NULL, 1, 1, 35000.00, 3500.00, 1750.00, 0.00, 40250.00, 'completed', 'paid', 'cash', '2025-12-22 05:16:30', NULL, NULL, '2025-12-21 22:15:52', '2025-12-21 22:16:30'),
+(6, 'ORD-251221232931-5-693', 5, NULL, 'Guest', NULL, 5, 1, 48000.00, 4800.00, 2400.00, 0.00, 55200.00, 'completed', 'paid', 'transfer', '2025-12-22 05:50:55', NULL, NULL, '2025-12-21 22:29:31', '2025-12-21 22:50:55'),
+(7, 'ORD-251221235003-4-739', 4, NULL, 'Guest', NULL, 1, 1, 70000.00, 7000.00, 3500.00, 0.00, 80500.00, 'completed', 'paid', 'cash', '2025-12-22 05:51:05', NULL, NULL, '2025-12-21 22:50:03', '2025-12-21 22:51:05'),
+(8, 'DP-251221-2', 16, NULL, 'ad (Deposit Booking)', NULL, NULL, 1, 0.00, 0.00, 0.00, 0.00, 120000.00, 'completed', 'paid', 'transfer', '2025-12-22 05:53:15', NULL, NULL, '2025-12-21 22:53:15', '2025-12-21 22:53:15'),
+(9, 'DP-251222-3', 15, NULL, '1 (DP Booking #RES-8725)', NULL, NULL, 1, 100000.00, 0.00, 0.00, 0.00, 100000.00, 'pending', 'partial', 'transfer', NULL, 'DP Booking: RES-8725. Sisa pembayaran saat checkout.', NULL, '2025-12-22 00:11:11', '2025-12-22 00:11:11');
 
 -- --------------------------------------------------------
 
@@ -403,12 +482,16 @@ INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `quantity`, `price`
 (1, 1, 1, 2, 35000.00, 'Pedas level 2', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
 (2, 1, 19, 2, 8000.00, 'Tanpa es', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
 (3, 1, 37, 1, 22000.00, NULL, 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(4, 2, 6, 2, 48000.00, 'Extra sambal', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(5, 2, 9, 1, 38000.00, NULL, 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(6, 2, 21, 2, 18000.00, NULL, 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(7, 2, 25, 1, 22000.00, 'Less sugar', 'served', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(4, 2, 6, 2, 48000.00, 'Extra sambal', 'completed', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 22:02:52'),
+(5, 2, 9, 1, 38000.00, NULL, 'completed', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 22:02:52'),
+(6, 2, 21, 2, 18000.00, NULL, 'completed', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 22:02:52'),
+(7, 2, 25, 1, 22000.00, 'Less sugar', 'completed', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 22:02:52'),
 (8, 3, 4, 2, 30000.00, 'Mie extra', 'cooking', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
-(9, 3, 20, 2, 12000.00, NULL, 'pending', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43');
+(9, 3, 20, 2, 12000.00, NULL, 'pending', NULL, NULL, NULL, '2025-12-21 19:45:43', '2025-12-21 19:45:43'),
+(10, 5, 7, 1, 35000.00, '', 'completed', NULL, NULL, NULL, '2025-12-21 22:15:52', '2025-12-21 22:16:30'),
+(11, 6, 6, 1, 48000.00, '', 'completed', NULL, NULL, NULL, '2025-12-21 22:29:31', '2025-12-21 22:50:55'),
+(12, 7, 7, 1, 35000.00, '', 'completed', NULL, NULL, NULL, '2025-12-21 22:50:03', '2025-12-21 22:51:05'),
+(13, 7, 7, 1, 35000.00, '', 'completed', NULL, NULL, NULL, '2025-12-21 22:50:18', '2025-12-21 22:51:05');
 
 -- --------------------------------------------------------
 
@@ -429,6 +512,16 @@ CREATE TABLE `payment_transactions` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `payment_transactions`
+--
+
+INSERT INTO `payment_transactions` (`id`, `order_id`, `transaction_type`, `amount`, `payment_method`, `status`, `cashier_id`, `reference_number`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 2, 'order_payment', 172500.00, 'qris', 'success', 1, NULL, NULL, '2025-12-21 22:02:52', '2025-12-21 22:02:52'),
+(2, 5, 'order_payment', 40250.00, 'cash', 'success', 1, NULL, NULL, '2025-12-21 22:16:30', '2025-12-21 22:16:30'),
+(3, 6, 'order_payment', 55200.00, 'transfer', 'success', 1, NULL, NULL, '2025-12-21 22:50:55', '2025-12-21 22:50:55'),
+(4, 7, 'order_payment', 80500.00, 'cash', 'success', 1, NULL, NULL, '2025-12-21 22:51:05', '2025-12-21 22:51:05');
 
 -- --------------------------------------------------------
 
@@ -491,6 +584,13 @@ CREATE TABLE `staff_access_codes` (
   `expires_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `staff_access_codes`
+--
+
+INSERT INTO `staff_access_codes` (`id`, `code`, `target_role`, `is_used`, `used_by`, `created_by`, `created_at`, `expires_at`) VALUES
+(1, 'WAI-8B96Q5', 'waiter', 0, NULL, 1, '2025-12-21 22:03:26', '2025-12-29 05:03:26');
+
 -- --------------------------------------------------------
 
 --
@@ -519,10 +619,10 @@ INSERT INTO `tables` (`id`, `table_number`, `capacity`, `location`, `status`, `c
 (1, 'A1', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
 (2, 'A2', 2, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
 (3, 'A3', 4, 'indoor', 'occupied', 1, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(4, 'A4', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(5, 'A5', 4, 'indoor', 'occupied', 3, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(4, 'A4', 4, 'indoor', 'dirty', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:51:05', 0.00),
+(5, 'A5', 4, 'indoor', 'dirty', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:50:55', 0.00),
 (6, 'B1', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
-(7, 'B2', 4, 'indoor', 'occupied', 2, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
+(7, 'B2', 4, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 22:29:24', 0.00),
 (8, 'B3', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
 (9, 'B4', 6, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
 (10, 'B5', 8, 'indoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 19:45:43', 0.00),
@@ -530,7 +630,7 @@ INSERT INTO `tables` (`id`, `table_number`, `capacity`, `location`, `status`, `c
 (12, 'C2', 2, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
 (13, 'C3', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
 (14, 'C4', 4, 'outdoor', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 50000.00),
-(15, 'V1', 8, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00),
+(15, 'V1', 8, 'vip', 'reserved', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-22 00:11:11', 100000.00),
 (16, 'V2', 10, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00),
 (17, 'V3', 12, 'vip', 'available', NULL, NULL, 1, '2025-12-21 19:45:43', '2025-12-21 20:15:16', 100000.00);
 
@@ -820,13 +920,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `booking_payments`
@@ -850,7 +950,7 @@ ALTER TABLE `customers`
 -- AUTO_INCREMENT for table `inventory_logs`
 --
 ALTER TABLE `inventory_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `menu_items`
@@ -862,25 +962,25 @@ ALTER TABLE `menu_items`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `payment_transactions`
 --
 ALTER TABLE `payment_transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `settings`
@@ -892,7 +992,7 @@ ALTER TABLE `settings`
 -- AUTO_INCREMENT for table `staff_access_codes`
 --
 ALTER TABLE `staff_access_codes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `tables`
