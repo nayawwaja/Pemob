@@ -82,7 +82,7 @@
 
 ## 👥 Contributors
 <p align="center">
-  <img src="https://contrib.rocks/image?repo=YOUR_REPO_NAME" />
+  <img src="https://img.icons8.com/fluency/240/restaurant.png" width="140"/>
 </p>
 
 <table align="center">
@@ -92,8 +92,8 @@
     <td align="center"><img src="https://ui-avatars.com/api/?name=Rima+Nazwa&background=0A0A0A&color=00FFD1&size=100"/><br><b>Rima</b><br>241712004</td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100"/><br><b>Michael</b></a><br>241712042</td>
     <td align="center"><a href="https://github.com/Anggasana-11"><img src="https://github.com/Anggasana-11.png?size=50"/><br><b>Angga</b></a><br>241712014</td>
+    <td align="center"><a href="https://github.com/K1rigayakun"><img src="https://github.com/K1rigayakun.png?size=100"/><br><b>Michael</b></a><br>241712042</td>
     <td align="center"><img src="https://ui-avatars.com/api/?name=Ihsan+Munawar&background=0A0A0A&color=FFD700&size=100"/><br><b>Ihsan</b><br>241712007</td>
   </tr>
 </table>
