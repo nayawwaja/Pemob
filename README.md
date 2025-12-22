@@ -1,164 +1,174 @@
-<p align="center">
-  <img src="https://img.icons8.com/fluency/240/restaurant.png" width="140" />
-</p>
+Berikut adalah draf `README.md` yang dikembangkan dengan tampilan visual yang modern, profesional, dan "keren" menggunakan perpaduan Markdown, HTML, serta ikon Shield. Tampilan ini disesuaikan dengan tema aplikasi Anda (**Gold & Dark Mode**).
 
-<h1 align="center">🍽️ RESTO PRO</h1>
-<p align="center"><i>Sistem Manajemen Restoran Berbasis Mobile</i></p>
+---
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter" />
-  <img src="https://img.shields.io/badge/Android-8.0+-green?logo=android" />
-  <img src="https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart" />
+<img src="[https://img.icons8.com/fluent/120/D4AF37/restaurant.png](https://www.google.com/search?q=https://img.icons8.com/fluent/120/D4AF37/restaurant.png)" alt="Resto Pro Logo" width="120"/>
 </p>
 
----
+<h1 align="center">🍴 RESTO PRO: ULTIMATE BUILD v2.0</h1>
 
-## 📱 Deskripsi Aplikasi
-**RESTO PRO** adalah aplikasi manajemen restoran berbasis **Flutter** yang dirancang untuk membantu operasional restoran secara terintegrasi.  
-Aplikasi ini mendukung **multi-role user** seperti **Admin, Kasir, Waiter, Chef, dan Staff**, dengan sistem autentikasi serta navigasi otomatis berdasarkan peran pengguna.
-
-Aplikasi ini cocok digunakan untuk:
-- Manajemen pesanan
-- Pengelolaan user & role
-- Monitoring operasional restoran secara real-time
-
----
-
-## ✨ Fitur Utama
-- 🔐 **Autentikasi & Session Login**
-- 👥 **Multi Role User**
-  - Admin
-  - Chef / Kitchen
-  - Waiter
-  - Staff / Manager
-- 📦 **Manajemen Pesanan**
-- 🍳 **Dashboard Kitchen**
-- 🧾 **Dashboard Admin & Staff**
-- 💾 **Penyimpanan Session menggunakan SharedPreferences**
-- 🎨 **Splash Screen Animatif & Modern**
-
----
-
-## 🖼️ Preview Aplikasi
 <p align="center">
-  <img src="https://dummyimage.com/220x460/000/ffffff&text=Splash+Screen" />
-  <img src="https://dummyimage.com/220x460/111/ffffff&text=Login+Screen" />
-  <img src="https://dummyimage.com/220x460/222/ffffff&text=Dashboard" />
+<strong>Sistem Manajemen Restoran Terintegrasi Berbasis Mobile & Cloud</strong>
+
+
+
+
+<em>Mensinkronisasikan dapur, pelayanan, dan administrasi dalam satu genggaman elegan.</em>
+</p>
+
+<p align="center">
+<img src="[https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white](https://www.google.com/search?q=https://img.shields.io/badge/Flutter-3.x-02569B%3Fstyle%3Dfor-the-badge%26logo%3Dflutter%26logoColor%3Dwhite)" alt="Flutter">
+<img src="[https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white](https://www.google.com/search?q=https://img.shields.io/badge/Dart-0175C2%3Fstyle%3Dfor-the-badge%26logo%3Ddart%26logoColor%3Dwhite)" alt="Dart">
+<img src="[https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)" alt="PHP">
+<img src="[https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)" alt="MySQL">
 </p>
 
 ---
 
-## 🛠️ Tech Stack
+### 📖 Tentang Aplikasi
 
-### 📌 Platform & Framework
-<p>
-  <img src="https://img.icons8.com/color/48/flutter.png" />
-  <img src="https://img.icons8.com/color/48/android-os.png" />
-  <img src="https://img.icons8.com/color/48/dart.png" />
-</p>
+**RESTO PRO** adalah solusi manajemen restoran *all-in-one* yang dikembangkan menggunakan **Flutter** untuk sisi aplikasi dan **PHP Native (PDO)** untuk pengolahan data server. Aplikasi ini mengusung tema *Dark & Gold* yang mewah untuk kenyamanan operasional di berbagai kondisi cahaya.
 
-- **Flutter Version** : 3.x  
-- **Android Version** : Android 8.0 (Oreo) ke atas  
-- **Bahasa** : Dart  
-
-### 📚 Library / Package
-- `flutter/material.dart`
-- `shared_preferences`
-- `animation_controller`
-
-### 🌐 API
-- 🔒 **Private API** (Backend internal / lokal)
-- Tidak menggunakan Public API
+Sistem ini dirancang untuk memutus hambatan komunikasi antar staf dengan fitur pembaruan status pesanan secara *real-time*.
 
 ---
 
-## 🚀 Cara Menjalankan Aplikasi
+### ✨ Fitur Unggulan
 
-### 1️⃣ Clone Repository
+* **🛡️ Multi-Role Authentication:** Akses terpisah untuk Admin, Manager, Chef, Waiter, dan CS/Kasir .
 
-```bash
-git clone https://github.com/USERNAME/REPO_NAME.git
-```
 
-### 2️⃣ Masuk Folder Project
+* **👨‍🍳 Kitchen Control:** Monitoring antrean pesanan masuk dan kontrol waktu masak dengan indikator durasi.
 
-```bash
-cd resto_management
-```
 
-### 3️⃣ Install Dependency
+* **🕴️ Smart Waiter System:** Denah meja interaktif (tersedia, kotor, terisi) dan input pesanan digital langsung ke dapur .
 
+
+* **📅 Advanced Booking:** Sistem reservasi dengan validasi kode unik dan manajemen *Down Payment* (DP) otomatis .
+
+
+* **💳 Flexible Payment:** Mendukung *Split Bill* (bayar per-item), Tunai, QRIS, dan Transfer Bank.
+
+
+* **📊 Business Analytics:** Visualisasi pendapatan harian dan tren menu terlaris menggunakan `fl_chart`.
+
+
+* **⏱️ Attendance Tracking:** Pencatatan absensi staff (Clock-In/Out) yang terintegrasi dengan akses sistem.
+
+
+
+---
+
+### 🛠️ Stack Teknologi
+
+| Komponen | Teknologi | Deskripsi |
+| --- | --- | --- |
+| **Frontend** | Flutter SDK 3.x | Framework aplikasi cross-platform. |
+| **Bahasa** | Dart | Bahasa pemrograman utama frontend. |
+| **Backend** | PHP 8.x | API Server dengan keamanan PDO.
+
+ |
+| **Database** | MySQL | Penyimpanan data relasional.
+
+ |
+| **Libraries** | `fl_chart`, `intl`, `table_calendar` | Visualisasi data, lokalisasi, dan kalender.
+
+ |
+
+---
+
+### 👥 Tim Pengembang (The Visionaries)
+
+<table align="center">
+<tr>
+<td align="center">
+<a href="[https://github.com/nayawwaja](https://github.com/nayawwaja)">
+<img src="[https://github.com/nayawwaja.png](https://www.google.com/search?q=https://github.com/nayawwaja.png)" width="100px" style="border-radius:50%" alt="Nadya"/><br />
+<sub><b>Nadya Putri Anggina</b></sub>
+</a><br />
+241712040
+</td>
+<td align="center">
+<a href="[https://github.com/nitagustienpH](https://github.com/nitagustienpH)">
+<img src="[https://github.com/nitagustienpH.png](https://www.google.com/search?q=https://github.com/nitagustienpH.png)" width="100px" style="border-radius:50%" alt="Bernita"/><br />
+<sub><b>Bernita Agustien P H.</b></sub>
+</a><br />
+241712016
+</td>
+<td align="center">
+<img src="[https://ui-avatars.com/api/?name=Rima+Nazwa&background=D4AF37&color=000&size=100](https://www.google.com/search?q=https://ui-avatars.com/api/%3Fname%3DRima%2BNazwa%26background%3DD4AF37%26color%3D000%26size%3D100)" width="100px" style="border-radius:50%" alt="Rima"/><br />
+<sub><b>Rima Nazwa</b></sub><br />
+241712004
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="[https://github.com/Anggasana-11](https://github.com/Anggasana-11)">
+<img src="[https://github.com/Anggasana-11.png](https://www.google.com/search?q=https://github.com/Anggasana-11.png)" width="100px" style="border-radius:50%" alt="Angga"/><br />
+<sub><b>Anggasana Simanullang</b></sub>
+</a><br />
+241712014
+</td>
+<td align="center">
+<img src="[https://ui-avatars.com/api/?name=Ihsan+Munawar&background=D4AF37&color=000&size=100](https://www.google.com/search?q=https://ui-avatars.com/api/%3Fname%3DIhsan%2BMunawar%26background%3DD4AF37%26color%3D000%26size%3D100)" width="100px" style="border-radius:50%" alt="Ihsan"/><br />
+<sub><b>M. Ihsan Al Munawar</b></sub><br />
+241712007
+</td>
+<td align="center">
+<a href="[https://github.com/K1rigayakun](https://github.com/K1rigayakun)">
+<img src="[https://github.com/K1rigayakun.png](https://www.google.com/search?q=https://github.com/K1rigayakun.png)" width="100px" style="border-radius:50%" alt="Michael"/><br />
+<sub><b>Michael Deryl A. M.</b></sub>
+</a><br />
+241712042
+</td>
+</tr>
+</table>
+
+---
+
+### 🔑 Akun Akses Cepat (Uji Coba)
+
+Gunakan kredensial berikut untuk mencoba fungsionalitas sistem. Password default untuk semua akun: **`password`** .
+
+| Role | Email | Deskripsi |
+| --- | --- | --- |
+| **Admin** | `admin@resto.com` | Full Control & Laporan Bisnis. |
+| **Manager** | `manager@resto.com` | Pengelolaan Staff & Menu. |
+| **Chef** | `chef1@resto.com` | Monitor Antrean & Stok Dapur. |
+| **Waiter** | `waiter1@resto.com` | Pemesanan & Monitoring Meja. |
+| **Kasir/CS** | `kasir1@resto.com` | Pembayaran & Reservasi. |
+
+---
+
+### 🚀 Cara Menjalankan
+
+1. **Server & Database:**
+* Impor file `resto_db.sql` melalui phpMyAdmin.
+
+
+* Letakkan folder `resto_api` di dalam folder `htdocs` (XAMPP).
+
+
+2. **Konfigurasi Frontend:**
+* Aplikasi secara otomatis mendeteksi `localhost` atau IP Emulator `10.0.2.2`. Tidak diperlukan perubahan manual untuk penggunaan lokal .
+
+
+
+
+3. **Jalankan Aplikasi:**
 ```bash
 flutter pub get
-```
-
-### 4️⃣ Jalankan Aplikasi
-
-```bash
 flutter run
+
 ```
+
+
 
 ---
-
-## 🔑 Informasi Login
-
-```
-Password Default : password
-```
-
----
-
-## 👨‍💻 Tim Pengembang
 
 <p align="center">
-
-<a href="https://github.com/nayawwaja">
-  <img src="https://github.com/nayawwaja.png" width="90" /><br/>
-  <b>Nadya Putri Anggina</b><br/>
-  <sub>241712040</sub>
-</a>
-&nbsp;&nbsp;&nbsp;&nbsp;
-
-<a href="https://github.com/nitagustienpH">
-  <img src="https://github.com/nitagustienpH.png" width="90" /><br/>
-  <b>Bernita Agustien P</b><br/>
-  <sub>241712016</sub>
-</a>
-&nbsp;&nbsp;&nbsp;&nbsp;
-
-<a href="https://github.com/Anggasana-11">
-  <img src="https://github.com/Anggasana-11.png" width="90" /><br/>
-  <b>Anggasana Simanullang</b><br/>
-  <sub>241712014</sub>
-</a>
-
-<br/><br/>
-
-<a href="#">
-  <img src="https://avatars.githubusercontent.com/u/0?v=4" width="90" /><br/>
-  <b>Rima Nazwa</b><br/>
-  <sub>241712004</sub>
-</a>
-&nbsp;&nbsp;&nbsp;&nbsp;
-
-<a href="#">
-  <img src="https://avatars.githubusercontent.com/u/0?v=4" width="90" /><br/>
-  <b>Muhammad Ihsan A.M</b><br/>
-  <sub>241712007</sub>
-</a>
-&nbsp;&nbsp;&nbsp;&nbsp;
-
-<a href="https://github.com/K1rigayakun">
-  <img src="https://github.com/K1rigayakun.png" width="90" /><br/>
-  <b>Michael Deryl A.M</b><br/>
-  <sub>241712042</sub>
-</a>
-
+Made with ☕ and 🔥 by <strong>Resto Pro Team</strong>
 </p>
 
 ---
-
-## 📄 Lisensi
-
-Project ini dibuat untuk keperluan **akademik dan pembelajaran**.
-
