@@ -26,7 +26,7 @@
 
 ### 🌟 *Sistem manajemen restoran modern dengan fitur lengkap untuk operasional harian*
 
-[Fitur](#-fitur-unggulan) • [Teknologi](#-tech-stack) • [Instalasi](#-cara-menjalankan-aplikasi) • [Screenshot](#-application-preview) • [Tim](#-tim-pengembang)
+[Fitur](#-fitur-unggulan) • [Teknologi](#tech) • [Instalasi](#-cara-menjalankan-aplikasi) • [Screenshot](#-application-preview) • [Tim](#-tim-pengembang)
 
 </div>
 
@@ -230,7 +230,7 @@
 ---
 
 ## 🛠️ Tech Stack
-
+<a id="tech"></a>
 <div align="center">
 
 ### Frontend (Mobile)
