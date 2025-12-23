@@ -33,7 +33,7 @@
 
 ### 🔗 Navigasi  
 [✨ Fitur](#-fitur-unggulan) | 
-[🛠️ Teknologi](#-teknologi-yang-digunakan) | 
+[🛠️ Teknologi](#tech) | 
 [🚀 Instalasi](#-cara-menjalankan-aplikasi) | 
 [🖼️ Screenshot](#-application-preview) | 
 [👥 Tim](#-tim-pengembang)
