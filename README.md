@@ -1,5 +1,5 @@
 ---
-
+<a id="top"></a>
 <p align="center">
   <img src="https://img.icons8.com/fluency/240/restaurant.png" width="140"/>
 </p>
@@ -791,6 +791,6 @@ Made with ❤️ by Restaurant Management Team
 
 <img src="https://user-images.githubusercontent.com/74038190/212284158-e840e285-664b-44d7-b79b-e264b5e54825.gif" width="400">
 
-**[⬆ Back to Top](#-restaurant-management-system)**
+**[⬆ Back to Top](#top)**
 
 </div>
