@@ -228,9 +228,9 @@
 </details>
 
 ---
-
-## 🛠️ Tech Stack
 <a id="tech"></a>
+## 🛠️ Tech Stack
+
 <div align="center">
 
 ### Frontend (Mobile)
