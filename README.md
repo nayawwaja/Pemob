@@ -25,8 +25,18 @@
 </h2>
 
 ### 🌟 *Sistem manajemen restoran modern dengan fitur lengkap untuk operasional harian*
+</div>
 
-[Fitur](#-fitur-unggulan) • [Teknologi](#tech) • [Instalasi](#-cara-menjalankan-aplikasi) • [Screenshot](#-application-preview) • [Tim](#-tim-pengembang)
+---
+
+<div align="center">
+
+### 🔗 Navigasi  
+[✨ Fitur](#-fitur-unggulan) | 
+[🛠️ Teknologi](#-teknologi-yang-digunakan) | 
+[🚀 Instalasi](#-cara-menjalankan-aplikasi) | 
+[🖼️ Screenshot](#-application-preview) | 
+[👥 Tim](#-tim-pengembang)
 
 </div>
 
