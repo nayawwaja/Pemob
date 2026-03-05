@@ -35,20 +35,6 @@ class Database {
     }
 }
 
-// --- HELPER FUNCTIONS ---
-
-// Fungsi mencatat aktivitas (Audit Trail)
-if (!function_exists('logActivity')) {
-    function logActivity($db, $userId, $action, $description) {
-        try {
-            $stmt = $db->prepare("INSERT INTO activity_logs (user_id, action_type, description) VALUES (?, ?, ?)");
-            $stmt->execute([$userId, $action, $description]);
-        } catch (Exception $e) {
-            // Silent fail
-        }
-    }
-}
-
 // Fungsi membuat notifikasi internal
 function createNotification($db, $targetRole, $title, $message, $targetUserId = null) {
     try {
